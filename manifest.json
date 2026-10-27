@@ -625,5 +625,6 @@
       "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
       ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
     }
-  }
+  },
+  "graderRepo": "TensorOpsAI/tensorlearn-claude-lab-grader"
 }
