@@ -1,0 +1,36 @@
+{
+  "intro": "This lab follows *Write the intent*. The fictional clinic's results-ready notification now has an approved intent in `intent.md` (items I-1 to I-4, plus two open decisions). `inputs/current-policy.md` holds the current provider and privacy constraints; `inputs/archived-design.md` is an old proposal that was never approved.\n\nTerms used below:\n\n- **Traceable:** each intent item can be followed through a numbered requirement, a plan step and a test, and every file path you name really exists (or is clearly marked as a new file).\n- **Release gate:** the rule from I-1 that a patient is notified only after a doctor has reviewed and released the result.\n- **Idempotency key:** the value that makes a retried send safe to repeat. `inputs/current-policy.md` sets it to the released result version, so one released version is never delivered twice.\n\n**What you'll practise:** planning with Claude Code before any code is written: turning an approved intent into a spec and an ordered plan, and checking what Claude proposes against the repository instead of trusting old design notes.",
+  "replace": {
+    "README.md": [
+      [
+        "5. Link intent IDs to requirements, steps and tests; check that every named source path exists.",
+        "5. Link intent IDs to requirements, steps and tests; check that every named source path exists, or is explicitly marked as a proposed new file."
+      ],
+      [
+        "Claude can read and use scoped document patches plus fixed reference/mapping checks. No implementation, shell, arbitrary agents, dependency installation or invented approvals.",
+        "Claude can read the repository, list files and edit these two documents. No implementation, new source or test files, dependency installation or invented approvals."
+      ]
+    ]
+  },
+  "after_task": "A good way to work: use plan mode (press Shift+Tab until the footer shows plan mode) while Claude reads the inputs and drafts the structure, and ask it to check every path it proposes with `ls` before it goes into a document. The tests don't exist yet: in both documents, describe each test by a name and what it checks; don't create test files. There is no code to run in this lab. To list every source path you named: `grep -on 'src/[A-Za-z0-9_./-]*\\.mjs' spec.md plan.md`.",
+  "done": [
+    "Every heading from the starter templates is still there and has content under it.",
+    "The traceability table in `spec.md` has a row for each of I-1 to I-4, with a requirement and a test.",
+    "Every `src/...` path from the `grep` above either exists (check with `ls`) or is called a new file on the same line.",
+    "Both open decisions appear with their owners, and `git status` shows only `spec.md` and `plan.md` changed."
+  ],
+  "format": "- Keep the template headings exactly: `## Requirements`, `## Design`, `## Open decisions and owners` and `## Traceability` in `spec.md`; `## Ordered steps`, `## Paths and dependencies` and `## Risks and verification` in `plan.md`. Write at least a full sentence under each.\n- `spec.md` traceability table: one row per intent item, with the first cell starting with its ID (`I-1` to `I-4`) and the Requirement and Test cells filled.\n- `plan.md` table: at least 4 rows with Requirement, Step and Test filled. In *Existing path*, put only a file that exists in `src/`, or leave it empty or `-`.\n- *Ordered steps* is a numbered list (`1.`, `2.`, ...) of at least 3 steps.\n- Name both existing source files where the plan reuses them. A proposed file must be called new on the same line (for example \"new file `src/service/notify.mjs`\"); never present the archived helper as existing.\n- Write limits as digits (for example 50, not fifty). State the release gate and the idempotency key, and say in one sentence that clinical content stays out of notifications and logs.\n- If a line mentions archived advice (portal redesign, notifying on upload, the archived helper), say on that line that it is rejected, excluded or not used. Otherwise it counts as adopted and caps the score at 25/100.",
+  "claude_md": "For this exercise, edit only `spec.md` and `plan.md`. Before naming a path as existing, check it with `ls`; call any proposed file new.",
+  "page": {
+    "problem": "This lab follows the intent lab: the fictional clinic's results-ready notification now has an approved intent (I-1 to I-4 and two open decisions). Old design advice proposes a helper that was never built and conflicts with current policy; the provider allows at most 50 requests per second and 20 messages per batch, and the existing portal route must be reused. You turn the intent into a spec and an implementation plan that trace every intent item to requirements, steps and tests.",
+    "practise": "planning with Claude Code before writing code: turning an approved intent into numbered requirements, an ordered plan and named tests, and checking every path Claude proposes against the repository",
+    "hand_in": "spec.md and plan.md (no code or test files)",
+    "graded": [
+      "Every section is filled; I-1 to I-4 each trace to a requirement and a test; every source path you name exists or is clearly marked as new.",
+      "The release gate, privacy rules, provider limits, idempotency key and the open decisions with their owners are kept, and tests cover gating, privacy, duplicate retries and throughput.",
+      "Adopting archived advice (portal redesign, notifying on upload, the never-built helper) caps the score at 25."
+    ],
+    "slides": "Chapter 1, Lessons 2 and 3 (Requirements and design; Plan mode). The slides number requirements R1, R2 and concerns C1; here the approved items are I-1 to I-4 and you choose your own requirement IDs."
+  },
+  "slides": "Chapter 1, Lessons 2 and 3 (Requirements and design; Plan mode). The slides number requirements R1, R2 and concerns C1; here the approved items are I-1 to I-4 and you choose your own requirement IDs."
+}

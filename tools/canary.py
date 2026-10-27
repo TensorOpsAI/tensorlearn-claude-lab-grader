@@ -2,7 +2,7 @@
 
 For every GitHub Actions exercise in a TensorLearn export (see verify_templates.py), as the
 account signed in to the `gh` CLI:
-1. fork the starter (reused when it already exists) and enable Actions on the fork;
+1. fork the starter (an existing fork is reused and its main synced) and enable Actions;
 2. push the reference solution (private, see --solutions) to the fork's `canary` branch,
    rebuilt on its untouched main, so every run pushes a new commit to the same PR;
 3. keep one PR open inside the fork, targeting its main, exactly as learners do;
@@ -38,7 +38,10 @@ def canary(exercise,owner,timeout,solutions):
     fork=f"{owner}/{starter.split('/')[1]}"
     solution=solutions/key
     if not solution.is_dir(): return [f'no reference solution in {solution}']
-    try: run('gh','repo','view',fork,'--json','name')
+    try:
+        run('gh','repo','view',fork,'--json','name')
+        # An existing fork may predate a starter update; fast-forward its main like GitHub's Sync fork.
+        run('gh','repo','sync',fork,'--branch','main')
     except RuntimeError: run('gh','repo','fork',starter,'--clone=false','--default-branch-only')
     # A new fork keeps Actions off until enabled, as learners see in the Actions tab.
     run('gh','api','-X','PUT',f'repos/{fork}/actions/permissions','-F','enabled=true','-f','allowed_actions=all')

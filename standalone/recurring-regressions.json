@@ -1,0 +1,45 @@
+{
+  "intro": "The repository is a small claims status service: `src/customer-code.mjs` normalizes customer codes, and `src/claims-client.mjs` fetches a customer's claim status from the upstream claims-core service through a short cache. The source as shipped is correct (an engineer restored it after each bad run), so the problem only shows up when Claude works on a new task. `docs/incident.md` lists the two runs that went wrong and the two tasks to use.\n\n**What you'll practise:** debugging Claude Code's working context: reproduce a mistake that keeps coming back, trace why a correction doesn't carry over to a new session, fix that cause in a targeted way, and prove it with regression tests and a fresh session.",
+  "replace": {
+    "README.md": [
+      [
+        "1. Read the incident and current requirements. Reproduce the reported behavior.",
+        "1. Read the incident (`docs/incident.md`) and current requirements (`docs/current-schema.md`, `docs/status-design.md`). Reproduce the reported behavior: give Claude the **Reproduction task** quoted in `docs/incident.md` and inspect what it changes."
+      ],
+      [
+        "5. Start a fresh session and complete the next task without repeating the earlier conversation.",
+        "5. Start a fresh session (run `/clear`, or exit and start Claude Code again) and give it the **Next task** quoted in `docs/incident.md`, without repeating the earlier conversation. Record what it did in the *Fresh-session verification* section of `diagnosis.md`."
+      ],
+      [
+        "Instructor fixtures, workflows, release metadata and the runtime stay protected. The authoring profile provides scoped patching and fixed tests. Fresh-session checks start new processes; carrying the earlier conversation forward does not count.",
+        "Workflows (`.github/`), `exercise.json` and Claude Code settings files stay protected. Run the tests with Node 22 (see `docs/testing.md`). A fresh session is a new conversation (`/clear` or a restarted Claude Code); carrying the earlier conversation forward does not count."
+      ]
+    ],
+    "docs/testing.md": [
+      [
+        "During this exercise use the fixed `regressions.full` operation to run it.",
+        "Run it from the repository root with Node 22 (there is no package.json, so no `npm test`)."
+      ]
+    ]
+  },
+  "after_task": "Tips:\n\n- The reproduction is meant to go wrong, and Claude will probably change `src/`. Read `git diff`, keep notes for `diagnosis.md`, then restore the files it changed (for example `git restore src/`). Don't commit the regressed source.\n- `tests/student/verification.test.mjs` fails on purpose (`assert.fail`). Replace it with tests modelled on `tests/contract.test.mjs` that pass on the current source and would fail if the old `CUST-1234` format or the missing cache came back.\n- Run the full suite: `node --test tests/*.test.mjs tests/student/*.test.mjs`\n- Your personal `~/.claude/CLAUDE.md` and Claude Code's memory also load into every session and can influence these runs. If results look odd, check them.",
+  "done": [
+    "`node --test tests/*.test.mjs tests/student/*.test.mjs` passes on Node 22.",
+    "Your student tests fail if you temporarily put back the `CUST-1234` format or remove the cache from `src/claims-client.mjs` (try it, then `git restore src/`).",
+    "`src/customer-code.mjs` still accepts `CUS-000123` and rejects `CUST-1234`, and `src/claims-client.mjs` still caches each customer for 30 seconds.",
+    "All four sections of `diagnosis.md` are filled, including what the fresh session did with the Next task."
+  ],
+  "format": "- Keep the four headings of `diagnosis.md` and fill each one. In *Observed cause*, name the file that causes the recurrence.\n- Delete wrong guidance outright. A rule that is annotated, quoted or struck through is still read, and still counts as kept.\n- Keep the useful general guidance with its wording. Where the corrected guidance covers customer codes, caching and testing, state the current code format, the 30-second cache and the full test command (including `tests/student`).\n- Student tests go in `tests/student/` and end in `.test.mjs`. They must pass on your submission; the grader also runs them against the old customer-code format and against a client without the cache, and expects them to fail.\n- Commit the correct source, not the version the reproduction produced.",
+  "page": {
+    "problem": "A small claims status service normalizes customer codes and caches each customer's status from the upstream claims-core service for 30 seconds. Claude keeps reintroducing an old customer-code format (CUST-1234 instead of CUS-000123) and removing the cache, even after engineers corrected it; each new session repeats the mistakes. Find why corrections don't survive a new session, fix the cause, and show that a fresh session completes the next task correctly.",
+    "practise": "debugging Claude Code's working context: reproducing a recurring mistake, tracing where it comes from, making a targeted correction and verifying it with regression tests and a fresh session",
+    "hand_in": "your correction, regression tests in tests/student/ and diagnosis.md",
+    "graded": [
+      "Customer-code and cache behaviour are checked by running the code; the full suite must pass, and your tests must fail when the old format or the missing cache returns.",
+      "The corrected project guidance and diagnosis.md are checked for the current rules and a named cause.",
+      "Leaving a false convention in place caps the score at 25."
+    ],
+    "slides": "Chapter 1, Lesson 4: what Claude reads at the start of every session, and why a wrong line there is worse than a missing one."
+  },
+  "slides": "Chapter 1, Lesson 4: what Claude reads at the start of every session, and why a wrong line there is worse than a missing one."
+}

@@ -1,0 +1,75 @@
+{
+  "intro": "There is no real repository history here. The scenario is that every task is handed everything, current and archived notes alike, and the largest model. The three tasks are in `fixtures/tasks.json`; their sources are `fixtures/current-policy.md` (the approved, current policy) and `fixtures/archived-notes.md` (superseded prototype notes). A *stage* in `routing.json` is one model setting with its limits (model alias, input and output tokens, retries); a *route* sends a task type to a stage.\n\n**What you'll practise:** choosing the model per task in Claude Code (`/model`), keeping context small (`/context`, `/clear`), and writing a compact handoff that a fresh session can act on without the full history.",
+  "replace": {
+    "README.md": [
+      [
+        "2. Choose stage policies using instructor-approved model aliases.",
+        "2. Choose stage policies in `routing.json` using Claude Code model aliases (for example `haiku`, `sonnet` or `opus`, or the ones your instructor names), and route each task type to a stage."
+      ],
+      [
+        "3. Write compact handoffs that preserve sources, constraints and uncertainty.",
+        "3. Write compact handoffs that preserve sources, constraints and uncertainty. Fill in `handoffs/template.md`; it is the handoff that is graded."
+      ],
+      [
+        "4. Run the practice pack through the controlled stage broker.",
+        "4. Run the tasks in `fixtures/tasks.json` in Claude Code: switch with `/model` so the extract task runs on your extract stage's model and the reason tasks on your reason stage's model, and compare with a larger model."
+      ],
+      [
+        "5. Inspect observed quality, model IDs, context size, retries and usage; revise.",
+        "5. Inspect observed quality, model, context size (`/context`), retries and usage (`/cost`, where your plan shows it); revise."
+      ],
+      [
+        "The instructor supplies actual model IDs, rates and allowance outside the repository. Candidate routing cannot call providers directly or override child models. The broker admits bounded calls and records real usage; client estimates alone are not a hard cap.",
+        "`routing.json` is a design record: nothing in this repository executes it, so its token and retry limits describe the caps you would enforce, not an enforced budget. Full model IDs, prices and allowances are not part of it."
+      ],
+      [
+        "- Correctness meets the published threshold before efficiency credit.",
+        "- Correctness comes before efficiency: a cheaper route or shorter handoff that drops a current constraint is not an improvement."
+      ],
+      [
+        "- Calls, retries and context/output limits stay within instructor configuration.",
+        "- Calls, retries and context/output limits stay within the published limits (see Graded format in README.md)."
+      ]
+    ],
+    "contract.md": [
+      [
+        "Model aliases must be present in the instructor's external policy; actual full IDs, token prices, admission allowance and authoritative ceilings are not student-controlled.",
+        "Use Claude Code model aliases such as `haiku`, `sonnet` or `opus`, a different one per stage; full model IDs, token prices and budgets are not part of routing.json."
+      ],
+      [
+        "The stage tool receives a validated stage ID and bounded input. No arbitrary shell, network or provider method exists.",
+        "Nothing in this repository executes routing.json; you try the routing yourself in Claude Code with `/model`."
+      ],
+      [
+        " The instructor must announce the quality threshold and allowance before launch.",
+        ""
+      ],
+      [
+        "Report actual observed route and usage separately from predicted cost.",
+        "Report actual observed route and usage separately from predicted cost, in your PR description."
+      ]
+    ]
+  },
+  "after_task": "To test the handoff, run `/clear` and give the fresh session only `handoffs/template.md`, then ask it to plan the work in `fixtures/tasks.json`. If it has to look something up, or picks up archived advice, the handoff is missing something. Use Node 22 for the commands below; there is no `package.json`.",
+  "done": [
+    "`node -e \"const r=JSON.parse(require('fs').readFileSync('routing.json','utf8'));console.log(r.routes,r.stages)\"` shows one route per task type and a different model alias per stage, within the limits in Graded format.",
+    "`escalationPolicy` no longer says `TODO`.",
+    "`wc -c handoffs/template.md` prints less than 2000, and every section of the template is filled in.",
+    "After `/clear`, a session given only `handoffs/template.md` can plan the tasks without opening `archived-notes.md` or following its advice.",
+    "You ran at least one task on a small and a larger model with `/model`, and your PR description notes the model and usage you observed.",
+    "`git status` shows changes only in `routing.json` and `handoffs/`."
+  ],
+  "format": "- `routing.json` keeps exactly `stages`, `routes` and `escalationPolicy`. Keep the two stages `extract` and `reason`, each with exactly `modelAlias`, `maxInputTokens` (1–8000), `maxOutputTokens` (1–2000) and `maxRetries` (0 or 1). Each stage uses a different `modelAlias`.\n- `routes` has exactly one `{\"taskType\": ..., \"stage\": ...}` entry per `taskType` in `fixtures/tasks.json`, sending each task type to the stage of the same name.\n- `escalationPolicy` is at least 80 characters and names conditions you can observe in a task, such as conflicting or several sources, ambiguity, missing evidence or archived sources.\n- `handoffs/template.md`: keep its five `# ` headings exactly as they are, write at least a sentence under each, and keep the file under 2000 bytes. Only this handoff file is graded.\n- The handoff keeps the current constraints from `current-policy.md`, with numbers written as digits (requests per second, cache duration), plus review, release and no clinical details. It cites `current-policy.md`, names `archived-notes.md` on a line that marks it obsolete or superseded, and its `# Open questions` section names the channel decision and both of its owners.\n- Write anything still undecided as a question (a line ending in `?`). Mention archived advice only to mark it obsolete.",
+  "page": {
+    "problem": "Extra lab, beyond the course slides. Every task is handed the full history, current and archived notes alike, and the most expensive model. Costs grow while key constraints from the current policy still disappear from the handoff. You route simple and hard tasks to different models and compress the context into a short handoff.",
+    "practise": "choosing a model per task in Claude Code (/model), watching context and usage (/context, /cost), and writing a compact handoff that a fresh session (/clear) can act on",
+    "hand_in": "routing.json (a model and limits per stage, plus routes and an escalation policy) and handoffs/template.md",
+    "graded": [
+      "routing.json keeps the schema, routes each task type to its own stage and uses a different model per stage within the limits; the escalation policy names observable conditions.",
+      "The handoff template is compact, fills every section, keeps the current constraints, cites the current policy, marks the archived notes obsolete and leaves the channel decision open with its owners.",
+      "Adopting archived advice (removing the cache, results by SMS, developer-chosen channel) caps the score at 25."
+    ],
+    "slides": "none; this is an extra lab. It builds on Chapter 1, Lesson 6 (a subagent starts with a fresh context, so it only knows what you hand it)."
+  },
+  "slides": "none; this is an extra lab. It builds on Chapter 1, Lesson 6 (a subagent starts with a fresh context, so it only knows what you hand it)."
+}

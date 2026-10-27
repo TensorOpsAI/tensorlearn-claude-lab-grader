@@ -468,79 +468,79 @@
   "standalone": {
     "bug-fix": {
       "docs/contract.md": "9e609b1b07eba340341bb4c17031692a2dc84114",
-      "exercise.json": "e8a3faa860a80fc3205149fe9cfe8c284b1d99ac",
       "src/claims.mjs": "641c52753b57e60249cb73e41c4544f41390df9d",
       "tests/baseline.test.mjs": "a5fd3026cb5b242a800d6e5a125667b4b65bb36d",
       "tests/student/regression.test.mjs": "b07f129b0c3cf535ac4a4cc9ca31fb03f36caa5b",
-      "README.md": "0cdbee306eeb000d5f9f6b1b6ec8532756097ae3",
-      "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "2910cbf51660fad67d6322293f163fe6c553acbd",
+      "exercise.json": "b0e268c738c73036271c71999be301671385410f",
+      "CLAUDE.md": "c9ff5e033cf6bf080cb2c6f3cb469452fe0cf836",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     },
     "evals": {
       "contract.md": "4ee2f6649d9718674f4b3b726994c885ed64de03",
       "evals/assert.mjs": "0c782ba42ef6fcf89f0c18ea24e04abdceb2afe5",
       "evals/definition.json": "cc9bb07975b1a009d2b476466d03262ec6443331",
-      "exercise.json": "1f011105c915d4af3976fa99f1d261833c2863e9",
       "fixtures/workload.json": "92a104a38fa79498189a0692ba9a7c09443b0f9f",
       "references/broken.mjs": "d71c43f33938e7e13836618c14a4b73e73b97b9c",
       "references/good.mjs": "d0d0da0bf0dbafd9032ba94d03abf10eee443e41",
       "tests/eval/assertions.test.mjs": "28d782c9df8182b04f162512982c8158658149b4",
-      "README.md": "bea02d09cbf8d64afc5790733d793c6c9ad7375c",
-      "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "2649e8e7488b05f2a9dbb34531e3c2d8d1e17a53",
+      "exercise.json": "c5307c50ea98a447cfc3804ce0339e58d2e096f5",
+      "CLAUDE.md": "c9ff5e033cf6bf080cb2c6f3cb469452fe0cf836",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     },
     "hooks": {
-      "contract.md": "0e955508b85221afd7260f9db8ce6b8645e22e3e",
-      "exercise.json": "658d15af9d3404d2287c193696290831621341df",
+      "contract.md": "e0c5ac7108b0b97f228ae7820ff5cd317dabd141",
       "fixtures/events.json": "30440097691721ff461aab6676a27c4f8270994a",
       "guard/guard.mjs": "546bfa0ed5bc58a37e91f5515f5f756d2bce4fc0",
       "tests/student/guard/guard.test.mjs": "363fee13bdb7be32693aaa9a72f006b7f6b5cf8c",
-      "README.md": "1e31da1def47f547d6c8f5af80eac057955ac9f5",
-      "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "7886e5425afafe5e43813088c45808c866e6c521",
+      "exercise.json": "31f04117e2c932bda9ab4f3ee69ba2344370f652",
+      "CLAUDE.md": "c9ff5e033cf6bf080cb2c6f3cb469452fe0cf836",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     },
     "incident": {
-      "contract.md": "47a369b6c580c4425eaaf45492d2b4bfa30d6394",
+      "contract.md": "8c34c80b0d1603dcddae9d328106ad25e218ff60",
       "detector/detect.mjs": "5ecc2b50fa2c8ee3756f5c3148566c1babc6dbb6",
       "evals/assert.mjs": "50edd5951b8565401ddd1ebb9d4b63758efd2e09",
-      "exercise.json": "bfdc45cfd789386619bfd9582b38e7d111eb72d0",
       "fixtures/incident.md": "82396a9b69d69926eedbc8fe4e8342c6e57299c3",
       "fixtures/policy.json": "64d93cc5b23babb4505e8b7b8df0180d18958c49",
       "fixtures/series.json": "5c11939c4ee802c2f6c9d269e9b09f2334bbc3d2",
       "intent.md": "3e1ab852b2eabe397f3198c8ba46858b153bb0dd",
       "policy/response.json": "f4d4f912f4a1ad5425ec3b2962bd4fba8d6daa37",
-      "README.md": "6104a4f83bc98fb6fbf32499e4ab296e8ab60dd9",
-      "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "c145b165266506c661e3aa5e9380118e552c1e92",
+      "exercise.json": "1a975a523e5e0faeb3cdc3a6168cafa2cce89220",
+      "CLAUDE.md": "c9ff5e033cf6bf080cb2c6f3cb469452fe0cf836",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     },
     "intent": {
-      "exercise.json": "3321e9ceb00d316ce867a8fdbfe89de2998b1d25",
       "inputs/01-approved-prd.md": "991149165b492c763ac2c70a1dcf8cb1267f2f04",
       "inputs/02-current-meeting.md": "d4566031b042e3c786840242933f73f3e091414a",
       "inputs/03-superseded-request.md": "876996e266dad251d314270b810be63094418ffc",
       "intent.md": "0bd0601711616cb111d42d20c76dbf029850fdab",
-      "README.md": "5f068b72d78c5cdbd0f1f6a228efccb9762531f6",
-      "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "f2397b8bc4aac88f4f1bafd24e807de00972fb5d",
+      "exercise.json": "368dd12474bb1c3db249ceac3deeef9c03fe15dd",
+      "CLAUDE.md": "c9ff5e033cf6bf080cb2c6f3cb469452fe0cf836",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     },
     "model-routing": {
-      "contract.md": "cde0f5b8c565dab6a60bf607a885d65a65d97da3",
-      "exercise.json": "d1504693c8be04c4cdbcce8787d99e13a5ed5f40",
+      "contract.md": "d496e1688a102a99f43144e09844a0e691dfb51b",
       "fixtures/archived-notes.md": "2ec9b8336887a5dd0ef5ed3da41e6bba0aba682b",
       "fixtures/current-policy.md": "0616bb48892d4f12e7e7b7b49783d31334ff07b8",
       "fixtures/tasks.json": "a94e57e606b2004b0503d5ecd2adc94300a13f5b",
       "handoffs/template.md": "aa2fd30e6ee8605a1dd5e7b83014ac73b9201e21",
       "routing.json": "49506c0a26cd1b83328a2bccc3a788b6cd91a52c",
-      "README.md": "a82b1f3518c1dac883fe39b20ee943b99a1847ff",
-      "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "0b1f09e86e18163eca97afe4871da8b8f3628fb7",
+      "exercise.json": "cff23763139d847dedeaf2bb06226fad552c6a00",
+      "CLAUDE.md": "c9ff5e033cf6bf080cb2c6f3cb469452fe0cf836",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     },
     "preflight": {
       "answer.json": "99efa03f88fea6550d8ac3c425faf411cd5bb0f4",
-      "exercise.json": "49ca446437abcd358957e265bf1b821ac34624de",
-      "README.md": "c72d122c90b8d6b2db55821df6e029638feca1a8",
-      "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "cc35870ce7fd84c2f71c52d76ce292259692a685",
+      "exercise.json": "600f5f5582819d4dca2c1b4dcf9beabd6196f298",
+      "CLAUDE.md": "c9ff5e033cf6bf080cb2c6f3cb469452fe0cf836",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     },
     "recurring-regressions": {
       "CLAUDE.md": "111caada57e3862e60e2431d952efb4db6c54d1f",
@@ -548,53 +548,52 @@
       "docs/current-schema.md": "6af86de043666e1846c0b538cc82262a086789c1",
       "docs/incident.md": "fe826c329c50090c72c4ebae9525a7900997f54e",
       "docs/status-design.md": "6c72e1b5a2c357faf551f13394c5d3f4542e0edc",
-      "docs/testing.md": "b79ad16661cddd959835cc194769a1c2f3335532",
-      "exercise.json": "456a56f0cfe6dc2b260ff93891a26081862be2a9",
+      "docs/testing.md": "eddecc2c2963a21af7e5e1fdf095d895322569ed",
       "src/claims-client.mjs": "d99e21d6c1f02e684da2a7252d0b0ab0addc4cd5",
       "src/customer-code.mjs": "2ca9a18cbb8bdc6f86e5d4c3b6c6f27016e2822c",
       "tests/contract.test.mjs": "0b9a084b9e13b6c2a5043fa42cb02792806b4c31",
       "tests/smoke.test.mjs": "f56517f2700e9a08848a7e664262345ef5f3f0ef",
       "tests/student/verification.test.mjs": "e1ab1802b10fae23bb425f28d1b81c059195f882",
-      "README.md": "2f398204cfa9984fc4e56b85e9e0b2abcd569158",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "8434f717d717108e2ef49a0450dbe193e89a000a",
+      "exercise.json": "86fab55c0b2031ce3355d328a1751b41363e063a",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     },
     "release": {
       "agents/diagnosis.json": "4ad33ab6b85d5fc87912996bd5e3d5ec2bc0681b",
       "agents/release.json": "1af68cb3b7359e847589908b625a93c9a782728a",
       "approval-policy.json": "2323363b96b66f9fd0c9b6cc20c25ddc776bae5e",
-      "contract.md": "aa48b660c2fca155d214684a06d49aa401fe98e9",
-      "exercise.json": "8e61a214bac30176ebede2120981e87d788b7147",
+      "contract.md": "a67d895439f6ec4f6ca8255a20e59ea1ae51d722",
       "fixtures/scenarios.json": "9fbca5358f6b3bff13d75d77a98094ab27f84c06",
-      "README.md": "fad1c687785188764bd72a7519e0353e40e812bd",
-      "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "16c3d059291f5748ee59effd3f7adf33aa637600",
+      "exercise.json": "a59d1f91678e075334a00604ddf9521148788b68",
+      "CLAUDE.md": "c9ff5e033cf6bf080cb2c6f3cb469452fe0cf836",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     },
     "review": {
       "REVIEW.md": "a19cf786e89b21bb63e048e9641d18e0c4e77687",
       "agents/reviewer.json": "9f5ccf62e8f2e39a7b8941ec924cb8f31efe48b9",
-      "exercise.json": "97045d31e7706058fee0b88dd136c18cf8b5588e",
       "findings.schema.json": "764b3c142b421ce941237736ae3ca87d78ed351f",
       "fixtures/approved.md": "2fd0ecdc8df5ae320692da9497f28a1bc814b7f7",
       "fixtures/author-narrative.txt": "203bab568161827ff817a92833d63ec0b17b51da",
       "fixtures/clean.patch": "e827c03d1453754cd5057731aeccb9d1f22fda68",
       "fixtures/defective.patch": "a061c215f7c7827ea97449c47fc3bca67c1218b3",
-      "README.md": "7ce6b19753e8b4d4b8d191714d89c2745f1c74a4",
-      "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "cd5aaa7004da7aac0e1e15461bad04b58659d50a",
+      "exercise.json": "3679cba09a8d2c002ff876baba522deedc342127",
+      "CLAUDE.md": "c9ff5e033cf6bf080cb2c6f3cb469452fe0cf836",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     },
     "skills": {
       ".claude/skills/notification-policy/SKILL.md": "4cd55e1879b2dfc80cd8674b064478e044013f29",
       "checker/check-message.mjs": "f3df5ef218001b508c97ad682c0bed095b3fa8fb",
-      "exercise.json": "88ae6d6c56e19ac5b310899f845242b4f5115962",
       "fixtures/messages.json": "b2626ddf6e2f2c3eeedb7a72e4786852750aecc6",
       "fixtures/prompts.json": "f7906ba14b3c1fd477968def82bd1a0e8ea2d698",
       "policy.md": "201216a464d98a4aaf49d34c2e3fb87d00bc0ac4",
-      "README.md": "b80c992db9f6a3b72042b0175f8d567f47a6aa80",
-      "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "c5749fcd808a428125c14a17aed392ef17d7ae44",
+      "exercise.json": "2e548b5f547cde52564bd05502ed61b52f1b1ddf",
+      "CLAUDE.md": "c9ff5e033cf6bf080cb2c6f3cb469452fe0cf836",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     },
     "spec-plan": {
-      "exercise.json": "77d732e60be6c6cb3b1a7932e5f41a561c795e0a",
       "inputs/archived-design.md": "62501b11c216a8e9401af4cfc8ff4a5ffc5e6b72",
       "inputs/current-policy.md": "5216dd00e6707c4886780e7b5d76b36c7c443676",
       "intent.md": "25670759f02b0c400218694f082f3ee07afdd3af",
@@ -602,16 +601,16 @@
       "spec.md": "2f51e00f022ab8c24ee745641a5c80564bc9f4d2",
       "src/portal/result-route.mjs": "3d24a667035a95729ded9cf1e4b3821f05f5725a",
       "src/service/queue.mjs": "66b5458314acf275021e53c46b07fce032022ffe",
-      "README.md": "37ff71d89ca20b6ddb0842989b77b07f1b9eaf1c",
-      "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "e9013295c517b5f488da8f3ab5e9e2210257bf97",
+      "exercise.json": "484983bbface933cf99364a2c294203579f12ed3",
+      "CLAUDE.md": "80446df4ccbbee593e8ad2b4acd64302c4612e0f",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     },
     "subagents": {
       "agents/implementer.json": "87056f6987cc9064531532233853fd9b43da3b6b",
       "agents/researcher.json": "d978c26760213c2ec0db1f23e9023a23ee2619c4",
       "agents/verifier.json": "1b3b755f8ea7ea9a7ba7f0632f5627f74ea176b0",
-      "contracts.md": "18f4d6dd4a37bfe6034ebce6f665e7e144108d64",
-      "exercise.json": "6ebf0a8c84c91b1e0a6f89fec3474cf8fefd9306",
+      "contracts.md": "6340c52af3d35a45d3ce6da74958dd1474ed7c89",
       "fixtures/author-narrative.txt": "cdaa6ba8c32fa3cb99a2310c5bcb9425988f8314",
       "fixtures/implementation/README.md": "b5ee2a62379b633e609cfa0aa4d34f1b64f9d30d",
       "fixtures/research/archived-integration.md": "824cdff05e2bd782c1af37af6468e65aed8bf905",
@@ -621,9 +620,10 @@
       "fixtures/verification/requirements.md": "323ffbe92a9f6a194f3cc31e0d53ee97b61c1437",
       "handoff.json": "e275a89e310094e120d251d83109330fedd588cb",
       "src/notification.mjs": "9387f9917e6fa43effed80837e28b929f6927298",
-      "README.md": "e63e0dfc0e74f80fffa04d0b19775695a1cb93b9",
-      "CLAUDE.md": "928ed5abfd7cf929358d4111cd851ba70c4d39fc",
-      ".gitignore": "fd629f66ab9588d78444b0088a426555f25a9252"
+      "README.md": "efc52419188d732fdd3aba5769d2dc58623625d3",
+      "exercise.json": "2598d93aa0731803d766b3acbe05fe6161b8c4d3",
+      "CLAUDE.md": "d14b3f2a97a8c8e5c12f040b9943c712c5583ac6",
+      ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
     }
   },
   "graderRepo": "TensorOpsAI/tensorlearn-claude-lab-grader"

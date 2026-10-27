@@ -1,0 +1,40 @@
+{
+  "intro": "In the reported incident, viewer `user-4` was shown claim `claim-B`, which belongs to `user-42` (see `docs/contract.md`).\n\n**What you'll practise:** test-first bug fixing with Claude Code. Reproduce the bug with a failing regression test *before* changing the code, then fix it and show that the same test now passes.",
+  "replace": {
+    "README.md": [
+      [
+        "2. Add a regression test under `tests/student/` using Node’s test runner.",
+        "2. Add a regression test under `tests/student/` using Node’s test runner. Replace the placeholder in `tests/student/regression.test.mjs`; test files must end in `.test.mjs`."
+      ],
+      [
+        "3. Run the same test on the pinned original starter and confirm it fails for the intended reason.",
+        "3. Run the same test on the original starter code, before you change `src/claims.mjs`, and confirm it fails for the intended reason (`user-4` receives `claim-B`): `node --test tests/student/*.test.mjs`"
+      ],
+      [
+        "4. Fix `src/claims.mjs`, rerun your regression and the baseline, then submit both.",
+        "4. Fix `src/claims.mjs`, rerun your regression and the baseline, then submit both: `node --test tests/*.test.mjs tests/student/*.test.mjs`"
+      ],
+      [
+        " The restricted authoring profile exposes scoped patching and named test operations. Candidate tests run in a separate credential-free worker.",
+        "\n\nThe grader runs `getClaim` in an isolated sandbox without Node APIs, so keep it a self-contained pure function: no imports, no `console`. It runs your `tests/student/` tests with only `src/claims.mjs` next to them. Use Node 22."
+      ]
+    ]
+  },
+  "after_task": "A good way to work: ask Claude to write the failing test and run it, check the failure yourself, and only then ask for the fix.",
+  "done": [
+    "`node --test tests/student/*.test.mjs` failed before your fix and passes after it.",
+    "`node --test tests/*.test.mjs tests/student/*.test.mjs` passes.",
+    "Only `src/claims.mjs` and files under `tests/student/` changed."
+  ],
+  "page": {
+    "problem": "A claims-status helper works for the developer account but exposes another user’s claim in one edge case: viewer user-4 was shown claim-B, which belongs to user-42. The existing tests are green.",
+    "practise": "test-first bug fixing with Claude Code: write a regression test that fails on the original code, then fix src/claims.mjs so it passes",
+    "hand_in": "the fix and your test in tests/student/",
+    "graded": [
+      "24 lookup cases from docs/contract.md, plus your test failing before and passing after the fix.",
+      "Leaking a claim to the wrong owner caps the score at 25; no working regression test caps it at 70."
+    ],
+    "slides": "Chapter 2, Lesson 1 (Give Claude a feedback loop): for bug fixes the failing test comes first, then the fix, without editing the test."
+  },
+  "slides": "Chapter 2, Lesson 1 (Give Claude a feedback loop): for bug fixes the failing test comes first, then the fix, without editing the test."
+}

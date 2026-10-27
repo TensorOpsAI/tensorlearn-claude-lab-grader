@@ -164,7 +164,7 @@ def hooks(workspace,image):
 
 # recurring-regressions --------------------------------------------------------
 
-FALSE_CONVENTIONS=['Normalize new routes and helpers to this format','every request must call claims-core directly',
+FALSE_CONVENTIONS=['Customer references use the `CUST-1234` format','Normalize new routes and helpers to this format','every request must call claims-core directly',
                    'Remove local caching','that is the complete project validation command']
 USEFUL_GUIDANCE=['es modules','node 22','install dependencies','owner authorization','log patient or claim payloads','new recipients','clinical details']
 OLD_FORMAT="export function normalizeCustomerCode(value){if(typeof value!=='string')throw new TypeError('text');const code=value.trim().toUpperCase();if(!/^CUST-[0-9]{4}$/.test(code))throw new TypeError('invalid');return code;}\n"
@@ -259,6 +259,13 @@ def json_block(markdown):
         return value if isinstance(value,dict) else None
     except (ValueError,RecursionError): return None
 
+# Words that mark a line as rejecting, excluding or superseding what it mentions.
+NEGATION=re.compile(r"\b(not|no|never|without|avoid\w*|skip\w*|exclud\w*|reject\w*|supersed\w*|obsolete|ignor\w*|don't|do not|instead of|rather than)\b|out of scope")
+
+def negated(line):
+    """True when the line rejects what it mentions. File names like archived-notes.md don't count."""
+    return bool(NEGATION.search(re.sub(r'\barchived-[\w-]+\.md\b','',line.lower())))
+
 def prose(markdown):
     return re.sub(r'^```.*?^```[ \t]*$','',markdown,flags=re.M|re.S)
 
@@ -342,22 +349,24 @@ def review(workspace,image):
     policy=text(workspace,'REVIEW.md'); block=json_block(policy) or {}
     reviewer=json_file(workspace,'agents/reviewer.json')
     defective=findings(block.get('fixtures/defective.patch')); clean=findings(block.get('fixtures/clean.patch'))
-    status=[f for f in defective or [] if f['path']=='src/status.mjs']
+    path=lambda f: re.sub(r'^[ab]/','',f['path'].strip())  # diff headers say a/ and b/
+    status=[f for f in defective or [] if path(f)=='src/status.mjs']
     def found(line,requirements,severities):
         return any(f['line']==line and f['requirement'].strip() in requirements and f['severity'] in severities for f in status)
-    nits=[f for f in defective or [] if f['path']=='generated/styles.css']
-    supported={(2,'SPEC-CACHE'),(2,'PLAN-1'),(3,'SPEC-PRIVACY'),(4,'INTENT-1')}
+    nits=[f for f in defective or [] if path(f)=='generated/styles.css']
+    # PLAN-1 requires preserving the gate, the cache and log redaction, so it supports all three.
+    supported={(2,'SPEC-CACHE'),(3,'SPEC-PRIVACY'),(4,'INTENT-1'),(2,'PLAN-1'),(3,'PLAN-1'),(4,'PLAN-1')}
     checks=[
      {'id':'policy-written','passed':written(prose(policy),300)},
      {'id':'policy-covers-evidence-severity-and-requirements','passed':written(prose(policy),300) and all(w in prose(policy).lower() for w in ('evidence','severity','requirement'))},
      {'id':'reviewer-is-read-only-config','passed':isinstance(reviewer,dict) and set(reviewer)=={'purpose','instructions','output'}
         and reviewer['output']=='findings.schema.json' and written(reviewer.get('instructions'),80)},
      {'id':'findings-match-schema','passed':defective is not None and clean is not None and set(block)=={'fixtures/defective.patch','fixtures/clean.patch'}},
-     {'id':'finds-broken-release-gate','passed':found(4,{'INTENT-1'},('critical',))},
-     {'id':'finds-clinical-payload-logging','passed':found(3,{'SPEC-PRIVACY'},('critical',))},
+     {'id':'finds-broken-release-gate','passed':found(4,{'INTENT-1','PLAN-1'},('critical',))},
+     {'id':'finds-clinical-payload-logging','passed':found(3,{'SPEC-PRIVACY','PLAN-1'},('critical',))},
      {'id':'finds-removed-cache','passed':found(2,{'SPEC-CACHE','PLAN-1'},('critical','major'))},
      {'id':'no-unsupported-findings','passed':defective is not None and all((f['line'],f['requirement'].strip()) in supported for f in status)
-        and all(f['path'] in ('src/status.mjs','generated/styles.css') for f in defective)},
+        and all(path(f) in ('src/status.mjs','generated/styles.css') for f in defective)},
      {'id':'style-nit-stays-minor','passed':defective is not None and all(f['severity']=='minor' for f in nits) and len(nits)<=1},
      {'id':'clean-patch-has-no-findings','passed':clean==[]},
     ]
@@ -456,16 +465,20 @@ def spec_plan(workspace,image):
     spec_parts=sections(spec); plan_parts=sections(plan)
     trace=table_rows(spec,['intent','requirement','test']); steps=table_rows(plan,['requirement','step','existing path','test'])
     mentioned=set(re.findall(r'src/[A-Za-z0-9_./-]+\.mjs',both))
-    existing={c[2] for c in steps if len(c)>=4}-{'','-','—','none','n/a'}
+    cell=lambda c: c.strip().strip('`*').strip()
+    existing={cell(c[2]) for c in steps if len(c)>=4}-{'','-','—','none','n/a','None','N/A'}
+    # A path that doesn't exist yet is fine on lines that call it new or reject it (original rubric).
+    invented=[p for p in mentioned-REAL_PATHS
+              if any(p.lower() in l and not (re.search(r'\bnew\b',l) or negated(l)) for l in lower.splitlines())]
     ordered=re.findall(r'^\s*\d+\.\s+\S',plan_parts.get('ordered steps',''),re.M)
     open_part=spec_parts.get('open decisions and owners','').lower()
     def lines_with(*words): return [l for l in lower.splitlines() if all(w in l for w in words)]
     checks=[
      {'id':'spec-sections-written','passed':all(len(spec_parts.get(h,''))>=40 for h in ('requirements','design','open decisions and owners'))},
      {'id':'plan-sections-written','passed':all(len(plan_parts.get(h,''))>=40 for h in ('ordered steps','paths and dependencies','risks and verification'))},
-     {'id':'every-intent-traced','passed':all(any(r[0]==f'I-{n}' and len(r)>=3 and r[1] and r[2] for r in trace) for n in range(1,5))},
+     {'id':'every-intent-traced','passed':all(any(re.match(rf'I-{n}\b',cell(r[0])) and len(r)>=3 and r[1] and r[2] for r in trace) for n in range(1,5))},
      {'id':'plan-table-complete','passed':len(steps)>=4 and all(len(r)>=4 and r[0] and r[1] and r[3] for r in steps)},
-     {'id':'only-real-source-paths','passed':mentioned<=REAL_PATHS and existing<=REAL_PATHS and REAL_PATHS<=mentioned},
+     {'id':'only-real-source-paths','passed':not invented and existing<=REAL_PATHS and REAL_PATHS<=mentioned},
      {'id':'ordered-steps','passed':len(ordered)>=3},
      {'id':'review-and-release-gate','passed':bool(lines_with('review','release'))},
      {'id':'privacy-in-messages-and-logs','passed':bool(lines_with('clinical','log')) and 'portal' in lower},
@@ -473,7 +486,7 @@ def spec_plan(workspace,image):
      {'id':'tests-for-gate-privacy-retry-throughput','passed':all(re.search(p,lower) for p in (r'gat',r'privacy|clinical',r'duplicate|retr',r'throughput|rate|boundar'))},
      {'id':'open-decisions-with-owners','passed':all(w in open_part for w in ('channel','referring','product','privacy','clinical'))},
     ]
-    adopted=any(re.search(p,l) and not re.search(r'not|no |exclud|out of scope|supersed|archiv|reject|never',l)
+    adopted=any(re.search(p,l) and not negated(l)
                 for l in lower.splitlines() for p in (r'redesign',r'upload(ed)? .*notif|notif.*upload',r'sendallresults'))
     return checks,adopted
 
@@ -493,7 +506,7 @@ def model_routing(workspace,image):
     routed=pairs=={('extract','extract'),('reason','reason')} and len(routes)==2
     filled=all(len(parts.get(h,''))>=15 for h in ('task','current constraints and sources','relevant evidence','open questions','required output'))
     risky=[l for l in lower.splitlines() if re.search(r'remove (the )?cach|by sms|sms .*result|developer (can )?choose',l)
-           and not re.search(r'obsolete|supersed|archiv|reject|ignore|not|never|do not|don\'t',l)]
+           and not l.rstrip().endswith('?') and not negated(l)]
     checks=[
      # The starter's stages are already valid, so stage checks only count once routes exist.
      {'id':'routing-schema','passed':routed and set(routing)=={'stages','routes','escalationPolicy'} and set(stages)=={'extract','reason'} and all(stage_ok(s) for s in stages.values())},
@@ -540,7 +553,8 @@ def subagents(workspace,image):
     # An always-ineligible stub would pass the gate cases alone, so the gate needs a working positive case.
     gate=all(r=={'eligible':False,'body':''} for r in results[:4]) and final.get('eligible') is True
     neutral=final.get('eligible') is True and written(final.get('body'),10) and not CLINICAL.search(str(final.get('body')))
-    obsolete=any(cited(r,'archived-integration.md') or said(r,r'\b100\b') for r in requirements)
+    rejects=lambda r: negated(f"{r.get('statement','')} {r.get('source','')}")
+    obsolete=any((cited(r,'archived-integration.md') or said(r,r'\b100\b')) and not rejects(r) for r in requirements)
     checks=[
      {'id':'role-files-shape','passed':all(isinstance(r,dict) and set(r)=={'purpose','instructions','requestedContext'} and written(r.get('instructions'),80)
         and isinstance(r.get('requestedContext'),list) for r in roles.values())},
@@ -569,16 +583,19 @@ def subagents(workspace,image):
 # registry ---------------------------------------------------------------------
 
 DESCRIPTIONS={
- 'preflight':['`answer.json` holds one JSON number equal to 2.'],
+ 'preflight':['`answer.json` is exactly `{"answer": 2}`: one key, a number (not a string). Any other shape makes the submission invalid.'],
  'bug-fix':['24 function cases checked against the documented contract.',
             'Your regression test fails on the original code and passes on your fix.',
             'Critical ownership cases cap the score at 25/100; a missing regression test caps it at 70/100.'],
  'skills':['19 messages checked by running your checker: neutral messages allowed, clinical details blocked.',
-           'Failing a core privacy case caps the score at 25/100.'],
+           'Failing a core privacy case caps the score at 25/100.',
+           'The skill itself (SKILL.md) and whether it activates are reviewed by your facilitator, not scored.'],
  'evals':['13 recorded observations checked by running your evaluator: cache, rate limit and log privacy.',
-          'Failing a core case caps the score at 25/100.'],
+          'Failing a core case caps the score at 25/100.',
+          '`evals/definition.json` and your tests are reviewed by your facilitator, not scored.'],
  'incident':['27 cases checked by running your detector and evaluator, including boundaries and invalid input.',
-             'Failing a core case caps the score at 25/100.'],
+             'Failing a core case caps the score at 25/100.',
+             '`intent.md` and `policy/response.json` are reviewed by your facilitator, not scored.'],
  'hooks':[label for label,_ in HOOK_GROUPS.values()]+[
           'Every decision has the documented PreToolUse shape.','Deciding never changes the fixture files.',
           'Your student tests pass, and fail against an allow-all guard.',
@@ -586,16 +603,16 @@ DESCRIPTIONS={
  'recurring-regressions':['Customer codes: current format accepted, old and malformed codes rejected.',
           'The 30-second per-customer cache, failure handling and invalid-code handling all behave as designed.',
           'The full suite passes, and your student tests fail when the old format or the missing cache returns.',
-          'CLAUDE.md drops the false conventions, keeps the useful guidance, and states the current code format, cache and full test command.',
-          'diagnosis.md fills every section and names CLAUDE.md as the cause.',
-          'Leaving a false convention in CLAUDE.md caps the score at 25/100.'],
+          'The project guidance that carried the recurring instructions drops the false conventions, keeps the useful guidance, and states the current code format, cache and full test command.',
+          'diagnosis.md fills every section and names the file that caused the recurrence.',
+          'Leaving a false convention in place caps the score at 25/100.'],
  'intent':['intent.md has substantive prose covering purpose, scope, exclusions, success and open decisions.',
           'The decision record states the notification gate, allowed message content and approved scope.',
           'Both open decisions keep their owners, no other decision is invented, and no numeric target is invented.',
           'The success measures are the observable ones the sources name.',
-          'Notifying before review and release, or allowing clinical detail in the message, caps the score at 25/100.'],
+          'A missing or invalid decision record, notifying before review and release, or allowing clinical detail in the message caps the score at 25/100.'],
  'review':['REVIEW.md is a written policy covering evidence, severity and requirement mapping.',
-           'agents/reviewer.json keeps its three fields and writes findings.schema.json output.',
+           'agents/reviewer.json keeps exactly `purpose`, `instructions` and `output` (still `findings.schema.json`), with written instructions.',
            'Your recorded findings match the schema, find the three real defects with the right requirement and severity, and report nothing unsupported.',
            'The style change stays minor and the clean patch has no findings.'],
  'release':['approval-policy.json stays on staging, requires approval and lists exactly the fields an approval must match.',
@@ -604,11 +621,11 @@ DESCRIPTIONS={
             'A failed rollback escalates; both role instructions are written and the diagnosis role is read-only.',
             'Leaving staging, dropping approval, or accepting a forged approval caps the score at 25/100.'],
  'spec-plan':['spec.md and plan.md fill every section; each intent item I-1 to I-4 is traced to a requirement and a test.',
-              'The plan table is complete, the steps are ordered, and only real source paths are named.',
+              'The plan table is complete, the steps are ordered, and every source path named either exists or is clearly marked as new.',
               'The release gate, privacy rules, provider limits and idempotency key are kept.',
               'Tests cover gating, privacy, duplicate retries and throughput; open decisions keep their owners.',
               'Adopting archived advice (portal redesign, upload-triggered notifications, the missing helper) caps the score at 25/100.'],
- 'model-routing':['routing.json keeps the schema, routes each task type to its own stage, and uses different models per stage within the limits.',
+ 'model-routing':['routing.json keeps the schema, routes each task type to its own stage, and uses different models per stage within the limits (8000 input and 2000 output tokens, at most 1 retry).',
                   'The escalation policy names observable conditions.',
                   'The handoff template is compact, fills every section, keeps the current constraints and cites the current policy.',
                   'Archived notes are marked obsolete and the channel decision stays open with its owners.',
@@ -628,8 +645,8 @@ TASK_ADDITIONS={
 End `intent.md` with exactly one JSON block that records your decisions. Choose values
 only from these lists:
 
-- `notifyWhen`: {', '.join(f'`{v}`' for v in INTENT_VOCABULARY['notifyWhen'])}
-- `messageMayInclude`: {', '.join(f'`{v}`' for v in INTENT_VOCABULARY['messageMayInclude'])}
+- `notifyWhen` (every condition that must be true before a notification): {', '.join(f'`{v}`' for v in INTENT_VOCABULARY['notifyWhen'])}
+- `messageMayInclude` (everything the approved message may contain): {', '.join(f'`{v}`' for v in INTENT_VOCABULARY['messageMayInclude'])}
 - `inScope`: {', '.join(f'`{v}`' for v in INTENT_VOCABULARY['inScope'])}
 - `openDecisions[].topic`: {', '.join(f'`{v}`' for v in INTENT_VOCABULARY['openTopics'])}
 - `openDecisions[].owners`: {', '.join(f'`{v}`' for v in INTENT_VOCABULARY['owners'])}
@@ -639,13 +656,21 @@ only from these lists:
 {INTENT_BLOCK}
 
 The prose is still the main deliverable: the record only captures what you decided.
+Replace the `<!-- ... -->` placeholder in `intent.md` (leftover comments or `TODO` fail
+the prose check) and use exactly one fenced `json` block. A missing or invalid record
+caps the score at 25, like notifying too early or allowing clinical detail.
 ''',
- 'review':f'''## Calibration findings (graded)
+ 'review':f'''## Your findings (graded)
 
 Use your policy to review `fixtures/defective.patch` and `fixtures/clean.patch`, then
-record the findings in `REVIEW.md` as exactly one JSON block. Each patch gets an
-object that follows `findings.schema.json`; use the requirement IDs from
-`fixtures/approved.md` and the line number in the changed file.
+record the findings in `REVIEW.md` as exactly one JSON block (no other `json` blocks in
+the file). Each patch gets an object that follows `findings.schema.json`:
+
+- `path`: the file path without the `a/` or `b/` prefix, for example `src/status.mjs`.
+- `line`: the line number in the new version of the file (the `+` line).
+- `requirement`: one ID from `fixtures/approved.md` per finding.
+- `severity`: `critical` breaks a patient-safety, release-gate or privacy requirement;
+  `major` breaks another requirement; `minor` is style only.
 
 {REVIEW_BLOCK}
 ''',
@@ -657,12 +682,19 @@ observations, so use exactly these fields:
 - `environment`, `requireApproval`: as in the starter.
 - `requiredApprovalFields`: the record fields an approval must match, chosen from
   `id`, `action`, `environment`, `version`, `expiresAt`, `requestedBy`, `toolText`.
-  `expiresAt` means "still valid now".
+  `id` means the record's `id` equals the request's `approvalId`; `expiresAt` means
+  "still valid now". A request looks like
+  `{"approvalId": "approve-v2", "action": "deploy", "environment": "staging", "version": "v2"}`
+  and an approval record like `{"id": "approve-v2", "action": "deploy", "environment": "staging",
+  "version": "v2", "expiresAt": 2000, "requestedBy": "ops", "toolText": ""}`.
 - `rollbackWhen`: rules `{"metric": "errorRate"|"p95Ms", "operator": ">"|">="|"<"|"<=", "threshold": number}`;
   any matching observation triggers rollback.
 - `recoveryChecks`: rules in the same shape; every one must hold for a healthy observation.
 - `healthyObservationsRequired`: how many consecutive healthy observations prove recovery.
 - `onFailedRollback`: `"escalate"`, `"retry"` or `"declare-recovered"`.
+
+Each `agents/*.json` keeps only `purpose` and `instructions` (at least 100 characters), and
+`agents/diagnosis.json` says explicitly that the role is read-only.
 ''',
 }
 

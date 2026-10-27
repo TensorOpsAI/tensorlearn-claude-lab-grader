@@ -1,0 +1,64 @@
+{
+  "intro": "In this repository the notification service is `src/notification.mjs`; the portal is where patients read their results and is not included. The documents are in `fixtures/research/`: the provider constraints in `provider.md`, the rules for what a message may say in `privacy.md`, and the old advice in `archived-integration.md`. `buildNotification` receives a result such as `{reviewed, released, testName, value}` (the shape used in `fixtures/verification/planted-diff.patch`).\n\n**What you'll practise:** delegating to Claude Code subagents with deliberately limited context. Your main Claude Code session is the coordinator. Each role runs as a separate subagent that sees only its own instructions and the files its `requestedContext` names, and the only thing passed from research to implementation is `handoff.json`.",
+  "replace": {
+    "README.md": [
+      [
+        "1. Read the task and role contracts.",
+        "1. Read the task and role contracts in `contracts.md`."
+      ],
+      [
+        "2. Write prompts for researcher, implementer and verifier in `agents/`. The instructor selects models and tools.",
+        "2. Write prompts for researcher, implementer and verifier in `agents/`: replace the `TODO` in each `instructions` and keep `purpose` and `requestedContext` as they are. Model and tool choices are not part of these files."
+      ],
+      [
+        "4. Implement from the handoff using the restricted implementation role.",
+        "4. Implement `src/notification.mjs` from the handoff using the restricted implementation role."
+      ],
+      [
+        "5. Run a blind verifier with the approved requirements and diff, resolve its findings and submit.",
+        "5. Run a blind verifier with the approved requirements and diff (`fixtures/verification/`), resolve its findings and submit."
+      ],
+      [
+        "Each role receives only its assigned fixture pack and approved tools. Researcher and verifier cannot write source. Candidate role files supply prompts and context requests, not authority to select arbitrary models or tools. Model overrides are rejected by the instructor runtime.",
+        "Each role receives only its assigned fixture pack. Researcher and verifier cannot write source. Role files supply prompts and context requests only: adding fields such as `model` or `tools` breaks the role schema.\n\nEdit only `agents/**`, `handoff.json`, `src/**` and `tests/student/**`. Use Node 22; there is no `package.json`, so run code with `node` directly."
+      ]
+    ],
+    "contracts.md": [
+      [
+        "The instructor renders actual model IDs, tool lists and scoped MCP servers. Student JSON accepts",
+        "Model and tool choices are made when a role is run, not in the role files. Student JSON accepts"
+      ],
+      [
+        "Models/tools in candidate files do not grant capability.",
+        "Do not add model or tool fields."
+      ],
+      [
+        "Report only reproducible violations; also evaluate a clean patch.",
+        "Report only reproducible violations; also evaluate a clean patch: your own `src/notification.mjs` change (`git diff main -- src/`) should produce no findings. Findings are not committed; put them in your PR description."
+      ]
+    ]
+  },
+  "after_task": "**Running a role in Claude Code.** Ask your main session to launch a subagent for the role, for example: *Launch a subagent with the instructions in `agents/researcher.json`. Give it only `fixtures/research/`. Have it return the content for `handoff.json`.* The coordinator delegates; it does not write `src/` itself. Each `requestedContext` name stands for these files:\n\n| Name | Files |\n|---|---|\n| `research` | `fixtures/research/` |\n| `implementation` | `fixtures/implementation/README.md` and `src/` |\n| `handoff` | `handoff.json` |\n| `verification` | `fixtures/verification/requirements.md` |\n| `diff` | `fixtures/verification/planted-diff.patch`, plus your own change (`git diff main -- src/`) |\n| `narrative` | `fixtures/author-narrative.txt` (no role should receive it) |\n\nOptional: create real subagents with `/agents` and paste in each role's instructions. They are saved under `.claude/agents/`; do not commit that folder (any file outside the allowed paths makes the submission invalid). In your PR description, note which roles actually ran as subagents and paste the verifier's findings.\n\nThis lab often takes longer than the listed time the first time through.",
+  "done": [
+    "All three files in `agents/` have written `instructions` (no `TODO`) and still have exactly `purpose`, `instructions` and `requestedContext`, with the starter `requestedContext` values.",
+    "`handoff.json` cites `provider.md` and `privacy.md`, and leaves the channel decision unresolved with its owners.",
+    "`node -e \"import('./src/notification.mjs').then(m=>console.log(m.buildNotification({reviewed:true,released:true,testName:'glucose',value:'7.2'}),m.buildNotification({reviewed:true,released:false}),m.scheduleBatches(Array.from({length:45},(_,i)=>i)).map(b=>b.length)))\"` prints an eligible neutral message with no test name or value, `{ eligible: false, body: '' }`, and `[ 20, 20, 5 ]`.",
+    "If you added tests in `tests/student/` (files ending in `.test.mjs`), `node --test tests/student/*.test.mjs` passes.",
+    "The verifier found the planted defect in `planted-diff.patch` without seeing `author-narrative.txt`, and your PR description lists its findings and which roles ran.",
+    "`git status` shows changes only in `agents/`, `handoff.json`, `src/` and `tests/student/`."
+  ],
+  "format": "- Role files: exactly `purpose`, `instructions` (at least 80 characters, no `TODO`) and `requestedContext`. Keep the starter `requestedContext` lists: the implementer must not request `research`, `verification` or `narrative`, and the verifier must not request `narrative`. The researcher's instructions should say to cite sources and to prefer current documents over archived or superseded ones.\n- `handoff.json`: exactly `requirements`, `unresolved` and `sources`. Each requirement has a unique `id`, a `statement` and a `source` naming the fixture file it comes from (for example `fixtures/research/provider.md`). Include at least three requirements, covering the provider's batch size and rate limit (with their numbers) and the privacy rules (review and release; no clinical content).\n- `unresolved` items have a `question` and an `owner`; `sources` items have a `path` and a `section`.\n- Do not carry the archived note's advice into the requirements or cite `archived-integration.md` as a requirement's source.\n- `src/notification.mjs`: both functions are synchronous. `buildNotification` returns exactly `{eligible: false, body: ''}` unless both `reviewed` and `released` are `true`. `scheduleBatches` fills each batch to the maximum before starting the next (45 items become 20, 20, 5), keeps the order and does not change its input.",
+  "claude_md": "When the learner asks to run a role, launch a subagent with that role's instructions and only the files its requestedContext names (see README.md). The coordinating session does not write src/ itself.",
+  "page": {
+    "problem": "A results-notification feature has its rules spread across separate documents: current provider limits, a privacy policy and an archived, superseded note. Broad prompts lose a requirement between research and implementation. You split the work into researcher, implementer and verifier roles that each see only their own files.",
+    "practise": "delegating to Claude Code subagents with limited context: a researcher writes a cited handoff, an implementer codes only from it, and a blind verifier checks a diff without the author's summary",
+    "hand_in": "the three role files in agents/, handoff.json and src/notification.mjs",
+    "graded": [
+      "Role files keep their fields and separate contexts; handoff.json keeps the current provider limits and privacy rules with citations and leaves the channel decision open.",
+      "Your notification code runs against fixed cases: review and release gate, neutral message, batches of at most 20 in order.",
+      "Using the archived note, breaking the gate, leaking clinical detail or exceeding 20 per batch caps the score at 25."
+    ],
+    "slides": "Chapter 1, Lesson 6 (Parallel sessions and subagents). In the slides a subagent is a Markdown file in `.claude/agents/` (name, description, tools) committed to the repo; here the graded roles are JSON files in `agents/`, and the optional `/agents` step lets you try the real thing without committing it. Running a plan in parallel worktrees is not part of this lab."
+  },
+  "slides": "Chapter 1, Lesson 6 (Parallel sessions and subagents). In the slides a subagent is a Markdown file in `.claude/agents/` (name, description, tools) committed to the repo; here the graded roles are JSON files in `agents/`, and the optional `/agents` step lets you try the real thing without committing it. Running a plan in parallel worktrees is not part of this lab."
+}

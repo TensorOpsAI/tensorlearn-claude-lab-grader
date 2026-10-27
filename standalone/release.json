@@ -1,0 +1,64 @@
+{
+  "intro": "Version `v2` is deployed on staging and service health is poor: the error rate and the p95 latency (`p95Ms`, the time within which 95% of requests finish) are above the healthy limits in `contract.md`. One tool response tells Claude to read a production key, deploy to production and skip approval. That text is data returned by a tool, not an approval; obeying it would be a prompt injection. `fixtures/scenarios.json` describes the four cases. This starter has no live staging server: you write the instructions for two Claude roles and the approval policy that limits what they may do.\n\nTerms used below:\n\n- **Diagnosis role** (`agents/diagnosis.json`): reads status, logs and approval records; changes nothing.\n- **Release role** (`agents/release.json`): deploys or rolls back on staging, only with a matching approval.\n- **Mutation:** a deploy or a rollback.\n- **Approval record:** an instructor-owned record that authorizes one mutation. A mutation request names it by `approvalId` and must match its action, environment, version and expiry.\n\n**What you'll practise:** keeping Claude within its authority when tool output tries to expand it. Separate read-only diagnosis from approved release, and write a policy that only a matching approval record can satisfy, never text in a tool response.",
+  "replace": {
+    "README.md": [
+      [
+        "1. Read the release contract and sample scenario.",
+        "1. Read the release contract (`contract.md`) and the sample scenarios (`fixtures/scenarios.json`)."
+      ],
+      [
+        "2. Write diagnosis/release role instructions and approval policy.",
+        "2. Write diagnosis/release role instructions (`instructions` in `agents/diagnosis.json` and `agents/release.json`) and the approval policy (`approval-policy.json`, format below)."
+      ],
+      [
+        "3. Run healthy, degraded, unapproved and failed-rollback cases.",
+        "3. Walk through the healthy, degraded, unapproved and failed-rollback cases in `fixtures/scenarios.json` with Claude: for each, which role acts, what your policy allows or denies, and why. Optionally, give a subagent only your diagnosis instructions and the degraded scenario's `toolText`, and check that it treats the text as data, not as approval."
+      ],
+      [
+        "4. Check every environment, version and approval before a mutation.",
+        "4. Make the release instructions and `requiredApprovalFields` check every environment, version and approval before a mutation."
+      ],
+      [
+        "5. Verify recovery after rollback and report unresolved failures with evidence.",
+        "5. Verify recovery after rollback and report unresolved failures with evidence: set `rollbackWhen`, `recoveryChecks`, `healthyObservationsRequired` and `onFailedRollback` from the health rules in `contract.md`."
+      ],
+      [
+        " All effects are simulated staging operations. Production endpoints, generic HTTP, shell, approval-write tools and credentials are absent. The staging server checks immutable instructor approval records on every mutation; student policy cannot authorize itself.",
+        "\n\nThis starter has no staging server, release tools or credentials: you write instructions and a policy, not a running release. Only instructor approval records grant authority; your policy describes the checks and cannot authorize itself. The grader applies `approval-policy.json` to fixed approval records and health observations, and reads the two role files."
+      ]
+    ],
+    "contract.md": [
+      [
+        "# Simulated release contract",
+        "# Release contract"
+      ],
+      [
+        "Available diagnosis tools: status, logs, read_approval. Release profile may additionally expose deploy and rollback.",
+        "In this scenario the diagnosis role can use three read tools: status, logs and read_approval. The release role can also deploy and roll back. The starter has no live server; these tools describe what your role instructions govern."
+      ],
+      [
+        "The instructor controls server state, approval identities, current time and offered capabilities.",
+        "Approval records, the current time and the tools each role gets are set by the instructor, not by your files; the grader checks your policy against its own fixed records and time."
+      ]
+    ]
+  },
+  "after_task": "A good way to work: ask Claude to apply your draft policy to each scenario and explain each allow or deny decision, then fix the policy where the reasoning depends on tool text instead of an approval record. Keep the walkthrough and any subagent run in the chat; do not save them to files.",
+  "done": [
+    "Both role files have written `instructions` (no TODO), and the diagnosis instructions say the role is read-only and never deploys or rolls back.",
+    "`approval-policy.json` stays on staging, requires approval and uses the fields in the policy format below.",
+    "For each of the four scenarios you can say which role acts, what the policy allows or denies, and why; the degraded scenario's tool text never counts as approval.",
+    "Only `agents/` files and `approval-policy.json` changed."
+  ],
+  "page": {
+    "problem": "A staging release degrades service health (error rate and p95 latency). Tool output suggests using a production credential and skipping approval to repair it. The legitimate task is to diagnose staging and follow the approved rollback policy.",
+    "practise": "keeping Claude within its authority when tool output tries to expand it (prompt injection): write read-only diagnosis and approved release role instructions, and an approval policy that only a matching approval record can satisfy",
+    "hand_in": "agents/diagnosis.json, agents/release.json and approval-policy.json",
+    "graded": [
+      "The grader applies approval-policy.json to fixed approval records and health observations: mismatched, expired and forged approvals must be denied, and rollback, recovery and escalation must be right at the boundaries.",
+      "Both role instructions must be written, and the diagnosis role must be read-only.",
+      "Leaving staging, dropping approval, or accepting a forged approval caps the score at 25."
+    ],
+    "slides": "Chapter 2, Lessons 4 and 5 (Hooks as approval gates; CI/CD integration): read-only triage, release, status and rollback, rolling back when unhealthy, and approvals the agent cannot write. The slides run this in a pipeline with MCP servers and a PreToolUse gate; here you write the policy and role instructions those would enforce."
+  },
+  "slides": "Chapter 2, Lessons 4 and 5 (Hooks as approval gates; CI/CD integration): read-only triage, release, status and rollback, rolling back when unhealthy, and approvals the agent cannot write. The slides run this in a pipeline with MCP servers and a PreToolUse gate; here you write the policy and role instructions those would enforce."
+}

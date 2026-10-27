@@ -4,50 +4,81 @@ Each exercise in the monorepo starter becomes its own repository, so a learner f
 one repository per lab. The exercise directory becomes the repository root, with a
 TensorLearn submission guide and a pinned caller. Standalone starters are graded by
 fixed rules only (see fixed_rules.py); they never use a local assessment report.
+
+standalone/<key>.json adapts the original exercise text to that setup without changing
+the exercise: it replaces sentences about the old local launcher, states rules the
+grader checks, and gives the TensorLearn lab page its text. Every replaced sentence must
+exist in the original, so upstream wording changes fail loudly instead of drifting.
 """
 import argparse
 import json
 from pathlib import Path
+import re
 from grade import blob_sha, caller
 import fixed_rules
 
 ROOT=Path(__file__).resolve().parent
 OMIT={'practice.mjs'}  # Launcher-only practice packs; standalone starters have no launcher.
 LOCAL_SECTIONS=('## Local assessment and submission','## Run and submit')
+LAUNCHER_FIELDS=('practice','needsAI','recipeIndex')  # exercise.json fields only the launcher used
+IGNORED=['.claude/settings.local.json','CLAUDE.local.md']  # local Claude Code files a learner must not commit
 
-def guide(key,item):
-    checks=fixed_rules.descriptions(key)
-    graded='\n'.join(f'- {text}' for text in checks)
+def overrides(key):
+    path=ROOT/'standalone'/f'{key}.json'
+    return json.loads(path.read_text()) if path.exists() else {}
+
+def replace(text,pairs,label):
+    for old,new in pairs:
+        if text.count(old)!=1: raise ValueError(f'{label}: expected exactly one {old[:60]!r}')
+        text=text.replace(old,new)
+    return text
+
+def insert_before(text,marker,addition,label):
+    if not addition: return text
+    if text.count(marker)!=1: raise ValueError(f'{label}: expected exactly one {marker!r}')
+    return text.replace(marker,addition.rstrip()+'\n\n'+marker)
+
+def acceptance(readme):
+    """The bullets of the README's Acceptance section."""
+    match=re.search(r'^## Acceptance[^\n]*\n(.*?)(?=^## |\Z)',readme,re.M|re.S)
+    return [line[2:].strip() for line in match.group(1).splitlines() if line.startswith('- ')] if match else []
+
+def scale(key):
+    return 10 if key=='preflight' else 100
+
+def guide(key,claude_md_editable=False):
+    graded='\n'.join(f'- {text}' for text in fixed_rules.descriptions(key))
     return f'''## How to submit
 
 1. Fork this repository to your personal GitHub account. Use fictional information
-   only, keep the fork public, and keep `main` as its default branch.
-2. Clone your fork and enable GitHub Actions in its **Actions** tab. Use **Connect
-   GitHub for scoring** on the lab page to install the read-only grading App on your
-   fork. Return to the lab and use **Recheck connection** if needed.
-3. Download the TensorLearn client from the lab page and extract it outside your fork.
-   Follow the page's connection command from your fork folder. Paste your learner
-   token only into the hidden terminal prompt. Run `/load` from your fork folder to
-   connect the repository. Run `/load` again after the facilitator launches the round.
-4. Create a branch such as `{key}/first-draft` and complete the task above. Change
-   only the files the task allows; any other change makes the submission invalid.
-5. Commit and push your branch. Open a PR **inside your own fork**, targeting its
-   `main` branch. GitHub may suggest the upstream repository: select your fork instead.
-   Opening or updating this PR starts the checks automatically.
-6. Keep the PR open. When ready, run **`/submit`** in the connected Claude Code session
-   to submit that exact pushed revision for the current round. **No merge is required.**
-7. Use `/check` or refresh the lab page to read the saved result. The Actions run and
-   `lab-score/score.json` are useful feedback, but an Actions check alone does not
-   submit your work or prove that the server saved a score.
+   only, keep the fork public, and keep `main` as its default branch. In your fork's
+   **Actions** tab, click **I understand my workflows, go ahead and enable them** if shown.
+2. On the lab page, use **Connect GitHub for scoring** to install the read-only grading
+   App on your fork, then **Recheck connection**.
+3. Download the TensorLearn connector from the lab page and extract it outside your fork.
+   From your fork folder, run the page's `--code` connection command and paste your token
+   only into the hidden terminal prompt. This opens a Claude Code session connected to the lab.
+4. In that session, run `/load`. Run `/load` again after your instructor launches the round.
+5. Create a branch such as `{key}/first-draft` and complete the task above. Change only the
+   files the task allows: any other change, including {'' if claude_md_editable else '`CLAUDE.md`, '}`.claude/` settings or
+   agents, or notes files, makes the submission invalid.
+6. Commit and push your branch. Open a PR **inside your own fork**, targeting its `main`
+   branch (GitHub may suggest the upstream repository: select your fork instead). Check
+   that **Check {key} submission** starts in the PR's checks. Keep the PR open; no merge
+   is required.
+7. Run **`/submit`** in the connected Claude Code session, then `/check` (or refresh the
+   lab page) to read your saved score. The Actions run is useful feedback, but it does not
+   submit your work.
 
-A change to your answer requires a new commit, push, and explicit `/submit`. Keep
-`main` unchanged: the grader compares your PR with the released starter.
+A change to your answer needs a new commit, push and `/submit`. Keep `main` unchanged:
+the grader compares your PR with the released starter.
 
 ## What is graded
 
-The pinned grader in `.github/workflows/grade.yml` reads your files as data and runs
-your code only in an isolated, offline container. Every check is a fixed rule; no AI
-model judges your work. Your facilitator separately reviews clarity and reasoning.
+The pinned grader in `.github/workflows/grade.yml` reads your files as data and runs your
+code only in an isolated, offline container. Every check is a fixed rule; no AI model
+judges your work. Your score is out of {scale(key)}. Your facilitator separately reviews
+clarity and reasoning.
 
 {graded}
 '''
@@ -56,45 +87,91 @@ CLAUDE_MD='''# TensorLearn exercise
 
 Read @README.md for the task, the files you may change and how the work is graded.
 
-Help the learner reason and work within the allowed files. Do not silently commit,
-push, open or merge a PR. The learner opens a PR inside their own fork, targeting
-that fork's main branch. Opening or updating the PR starts advisory checks. Only the
-learner's explicit /submit request submits the selected pushed revision to
-TensorLearn. Keep the PR open; no merge is required. Never present an Actions check
-as a saved official score.
+Help the learner reason and work within the allowed files. Do not edit this file or any
+file outside the ones README.md allows. Do not silently commit, push, open or merge a PR.
+The learner opens a PR inside their own fork, targeting that fork's main branch. Opening
+or updating the PR starts advisory checks. Only the learner's explicit /submit request
+submits the selected pushed revision to TensorLearn. Keep the PR open; no merge is
+required. Never present an Actions check as a saved official score.
 '''
 
 def starter_files(starter,key):
     """Every file of one standalone starter except its pinned caller, as bytes."""
     source=starter/'exercises'/key
-    item=json.loads((source/'exercise.json').read_text())
+    extra=overrides(key)
+    edits=extra.get('replace',{})
     files={}
     for path in sorted(source.rglob('*')):
         relative=path.relative_to(source).as_posix()
         if path.is_symlink(): raise ValueError('No starter symlinks')
-        if not path.is_file() or relative in OMIT or relative=='README.md': continue
+        if not path.is_file() or relative in OMIT or relative in ('README.md','exercise.json'): continue
         if path.stat().st_mode & 0o111: raise ValueError(f'Unexpected executable mode: {relative}')
-        files[relative]=path.read_bytes()
+        data=path.read_bytes()
+        if relative in edits: data=replace(data.decode(),edits[relative],f'{key}/{relative}').encode()
+        files[relative]=data
+    unknown=set(edits)-set(files)-{'README.md'}
+    if unknown: raise ValueError(f'{key}: replacements for missing files {sorted(unknown)}')
     readme=(source/'README.md').read_text()
     cuts=[readme.index(h) for h in LOCAL_SECTIONS if h in readme]
     if not cuts: raise ValueError(f'{key}: README has no submission section to replace')
+    body=replace(readme[:min(cuts)].rstrip()+'\n',edits.get('README.md',[]),f'{key}/README.md')
+    intro='\n\n'.join(t for t in (extra.get('intro'),extra.get('slides') and f"**In the course slides:** {extra['slides']}") if t)
+    body=insert_before(body,'## Task',intro,f'{key}/README.md')
+    body=insert_before(body,'## Working rules',extra.get('after_task'),f'{key}/README.md')
+    if extra.get('done'): body=body.rstrip()+'\n\n## Done when\n\n'+''.join(f'- {d}\n' for d in extra['done'])
+    if extra.get('format'): body=body.rstrip()+'\n\n## Graded format\n\n'+extra['format'].strip()+'\n'
     addition=fixed_rules.TASK_ADDITIONS.get(key,'')
-    files['README.md']=(readme[:min(cuts)].rstrip()+'\n\n'+(addition+'\n' if addition else '')+guide(key,item)).encode()
+    item=json.loads((source/'exercise.json').read_text())
+    editable='CLAUDE.md' in item['writeAllow'] or '**' in item['writeAllow']
+    files['README.md']=(body.rstrip()+'\n\n'+(addition+'\n' if addition else '')+guide(key,editable)).encode()
+    for field in LAUNCHER_FIELDS: item.pop(field,None)
+    item['writeAllow']=[p for p in item['writeAllow'] if p!='assessment.json']
+    item['acceptance']=acceptance(body)
+    files['exercise.json']=(json.dumps(item,indent=2,ensure_ascii=False)+'\n').encode()
     # recurring-regressions ships CLAUDE.md as exercise material; keep the learner's file.
-    files.setdefault('CLAUDE.md',CLAUDE_MD.encode())
-    files.setdefault('.gitignore',(starter/'.gitignore').read_bytes())
+    claude=CLAUDE_MD+('\n'+extra['claude_md']+'\n' if extra.get('claude_md') else '')
+    files.setdefault('CLAUDE.md',claude.encode())
+    ignore=(starter/'.gitignore').read_text()
+    files.setdefault('.gitignore',(ignore.rstrip()+'\n'+''.join(f'{p}\n' for p in IGNORED if p not in ignore)).encode())
     return files
+
+def page(key,files,starter_url):
+    """The TensorLearn lab page: the problem first, then the shared submit loop."""
+    extra=overrides(key); text=extra.get('page',{})
+    item=json.loads(files['exercise.json'])
+    problem=text.get('problem',item['brief'])
+    lines=[problem,'',
+        f"You'll practise {text['practise']}. You hand in {text['hand_in']}." if text.get('practise') else '',
+        f"In the course slides: {text['slides']}" if text.get('slides') else '',
+        f"Time: about {item['minutes']} minutes. README.md in the starter has the full task, the rules and what is graded.",'',
+        f"1. Fork {starter_url} into your personal GitHub account. Keep it public and main as its default branch. In YOUR FORK's Actions tab, click “I understand my workflows, go ahead and enable them” if shown.",
+        '2. On this page, use Connect GitHub for scoring to install the grading App on your fork, then Recheck connection.',
+        '3. Download the TensorLearn connector from this page and extract it outside your fork. From your fork folder, run the --code connection command shown here, and paste the token only into the hidden terminal prompt.',
+        '4. In that Claude Code session, run /load. Run /load again after your instructor launches the round.',
+        '5. On a new branch, do the task in README.md. Change only the files it allows.',
+        f'6. Commit and push, then open a PR inside YOUR OWN FORK, from your branch to its main. Check that “Check {key} submission” starts. Keep the PR open; no merge is needed.',
+        '7. Run /submit, then /check (or refresh this page) for your saved score. Changes need a new commit, push and /submit.','',
+        'GOALS (from the exercise):',*[f'- {a}' for a in item['acceptance']],'',
+        f'HOW IT’S GRADED (fixed rules, out of {scale(key)}; no AI judges your work):',
+        *[f'- {g}' for g in text.get('graded',fixed_rules.descriptions(key))]]
+    return '\n'.join(line for i,line in enumerate(lines) if line or (i and lines[i-1]))
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--starter',type=Path,required=True,help='checkout of tensorlearn-claude-labs')
     parser.add_argument('--out',type=Path,help='write starter repositories here (needs --grader-sha)')
     parser.add_argument('--grader-sha',help='published grader commit for the pinned callers')
+    parser.add_argument('--pages',type=Path,help='write the TensorLearn lab page text per exercise as JSON')
+    parser.add_argument('--org',default='TensorOpsAI',help='organization that owns the starters (lab page links)')
     args=parser.parse_args()
     manifest_path=ROOT/'manifest.json'
     manifest=json.loads(manifest_path.read_text())
     keys=[key for key in sorted(manifest['exercises']) if key in fixed_rules.DESCRIPTIONS]
     starters={key:starter_files(args.starter,key) for key in keys}
+    if args.pages:
+        pages={key:{'instructions':page(key,files,f'https://github.com/{args.org}/tensorlearn-claude-{key}-lab'),
+                    'acceptance':json.loads(files['exercise.json'])['acceptance']} for key,files in starters.items()}
+        args.pages.write_text(json.dumps(pages,indent=1,ensure_ascii=False)+'\n')
     if args.out:
         if not args.grader_sha: parser.error('--out needs --grader-sha')
         for key,files in starters.items():
@@ -105,7 +182,7 @@ def main():
                 target=args.out/f'tensorlearn-{key}-lab'/relative
                 target.parent.mkdir(parents=True,exist_ok=True)
                 target.write_bytes(data)
-        return
+    if args.pages or args.out: return
     manifest['standalone']={key:{p:blob_sha(d) for p,d in files.items()} for key,files in starters.items()}
     manifest_path.write_text(json.dumps(manifest,indent=2)+'\n')
 

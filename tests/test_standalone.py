@@ -153,6 +153,41 @@ class DocumentRuleTests(unittest.TestCase):
     def test_sections(self):
         self.assertEqual(fixed_rules.sections('# T\n\n## A\nx\n## B\ny\n'),{'a':'x','b':'y'})
 
+class FalseFailTests(unittest.TestCase):
+    """Good-faith answers the first release wrongly capped or failed."""
+    def workspace(self,key,edit):
+        if not (LABS.is_dir() and SOLUTIONS.is_dir()): self.skipTest('labs checkout or solutions not found')
+        folder=tempfile.TemporaryDirectory(); self.addCleanup(folder.cleanup)
+        root=Path(folder.name)/'w'; shutil.copytree(LABS/'exercises'/key,root); shutil.copytree(SOLUTIONS/key,root,dirs_exist_ok=True)
+        edit(root); return root
+    def append(self,path,line):
+        return lambda root:(root/path).write_text((root/path).read_text()+line)
+    def test_negation_is_whole_word(self):
+        self.assertTrue(fixed_rules.negated('reuse the route without redesign'))
+        self.assertFalse(fixed_rules.negated('notify the patient when the lab upload completes'))
+        self.assertFalse(fixed_rules.negated('use the archived batch of 100 from archived-integration.md'))
+        self.assertTrue(fixed_rules.negated('provider rev 4 supersedes the archived batch of 100'))
+    def test_spec_plan_rejected_traps_and_new_files(self):
+        root=self.workspace('spec-plan',self.append('plan.md','\nReuse the portal route without redesign; never call src/service/sendAllResults.mjs. Add a new file src/service/notify-on-release.mjs.\n'))
+        checks,capped=fixed_rules.spec_plan(root,None)
+        self.assertFalse(capped); self.assertEqual([c['id'] for c in checks if not c['passed']],[])
+        root=self.workspace('spec-plan',self.append('plan.md','\nCall src/service/sendAllResults.mjs to send each upload.\n'))
+        self.assertFalse(dict((c['id'],c['passed']) for c in fixed_rules.spec_plan(root,None)[0])['only-real-source-paths'])
+    def test_review_accepts_plan_1_and_diff_paths(self):
+        def edit(root):
+            text=(root/'REVIEW.md').read_text().replace('"src/status.mjs", "line": 4, "severity": "critical", "requirement": "INTENT-1"','"b/src/status.mjs", "line": 4, "severity": "critical", "requirement": "PLAN-1"')
+            (root/'REVIEW.md').write_text(text)
+        checks,_=fixed_rules.review(self.workspace('review',edit),None)
+        self.assertEqual([c['id'] for c in checks if not c['passed']],[])
+    def test_model_routing_open_question_is_not_adopted(self):
+        def edit(root):
+            path=root/'handoffs/template.md'; path.write_text(path.read_text().replace('Channel is not approved','Should results be sent by SMS? Channel is not approved'))
+        self.assertFalse(fixed_rules.model_routing(self.workspace('model-routing',edit),None)[1])
+    def test_recurring_flags_the_old_format_line(self):
+        def edit(root):
+            path=root/'CLAUDE.md'; path.write_text(path.read_text()+'\n- Customer references use the `CUST-1234` format (CUST followed by four digits).\n')
+        self.assertTrue(fixed_rules.recurring_documents(self.workspace('recurring-regressions',edit))[1])
+
 def github_evidence(base_files,head_files,repo='learner/lab'):
     """A fake GitHub API for one same-repository PR from base_files to head_files."""
     head='a'*40;base='b'*40;tree='c'*40;base_tree='f'*40

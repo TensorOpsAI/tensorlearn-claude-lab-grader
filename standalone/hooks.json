@@ -1,0 +1,53 @@
+{
+  "intro": "Here the approved intent is `/workspace/intent.md`, and the instructor tests are everything under `/workspace/tests/instructor/`. Those files are not in this repository: they exist in the grader's container, which also has `/workspace/src/app.mjs` and a symlink `/workspace/src/shortcut` pointing to `/workspace/intent.md`.\n\nThe guard is a **PreToolUse** hook. Claude Code runs a PreToolUse hook before each tool call (Edit, Write, Bash, …), passes it the call as JSON, and the hook can allow or deny the call. You write the decision as a function, `decide(event)`, which the grader calls directly with fixed events like those in `fixtures/events.json`.\n\n**What you'll practise:** writing a Claude Code PreToolUse hook that protects files through every write path (direct edits, relative and dotted paths, symlinks, shell redirects, `cp`, `mv`, `tee` and scripts) without blocking normal work, and tests that prove it.",
+  "replace": {
+    "README.md": [
+      [
+        "1. Read the guard contract and sample events.",
+        "1. Read the guard contract (`contract.md`) and sample events (`fixtures/events.json`)."
+      ],
+      [
+        "3. Add student tests for direct paths, traversal, symlinks, rename and shell redirection.",
+        "3. Add student tests for direct paths, traversal, symlinks, rename and shell redirection in `tests/student/guard/`. Replace the placeholder in `guard.test.mjs`; test files must end in `.test.mjs`."
+      ],
+      [
+        "4. Run the fixed event and effect probes. Check that useful work still succeeds.",
+        "4. Run your tests and the sample events against your guard (commands below). Check that useful work still succeeds."
+      ],
+      [
+        "Edit only guard code and student guard tests. Hooks run in a disposable worker without network, host files or credentials. The trusted controller forwards bounded events; arbitrary candidate hooks never execute beside the model credentials. A broken guard blocked by the outer runtime receives no correctness credit.",
+        "Edit only guard code (`guard/**`) and student guard tests (`tests/student/guard/**`). The grader runs your guard in a disposable, offline container: it imports `guard/guard.mjs`, calls `decide()` with fixed events and checks that the fixture files are unchanged afterwards. A guard that throws, returns a promise or returns a malformed object gets no credit for that event. Use Node 22; there is no `package.json`."
+      ]
+    ],
+    "contract.md": [
+      [
+        "The harness supplies native event-shaped JSON: `{tool_name, tool_input, cwd}`.",
+        "The grader supplies native event-shaped JSON: `{tool_name, tool_input, cwd}` (a real Claude Code hook receives these fields on stdin, plus a few more)."
+      ],
+      [
+        "The harness maps live MCP probe IDs to these native fixtures. Only the instructor controls the probe map and actual effects.",
+        "The grader calls `decide()` directly with fixed events in this vocabulary, inside a container whose `/workspace` holds the fixture files, and checks afterwards that deciding changed no file."
+      ]
+    ]
+  },
+  "after_task": "Run your tests and the sample events from the repository folder:\n\n```sh\nnode --test 'tests/student/guard/**/*.test.mjs'\nnode -e \"import('./guard/guard.mjs').then(({decide})=>{for(const {id,event,expected} of require('./fixtures/events.json')){const got=decide(event).hookSpecificOutput.permissionDecision;console.log(got===expected?'ok  ':'FAIL',id,got)}})\"\n```\n\nYour machine most likely has no `/workspace`, so anything that depends on the fixture files (the `src/shortcut` symlink) cannot be checked locally: the `symlink` sample event shows `FAIL` here, and tests that need it should skip when it is absent, for example (with `import fs from 'node:fs'`) `test('symlink is protected', {skip: !fs.existsSync('/workspace/src/shortcut')}, () => …)`. Your guard must still decide when a path does not exist. Make every test assert at least one `deny`, so your tests fail against a guard that allows everything. If you have Docker, you can run the tests against the same fixture files:\n\n```sh\ndocker run --rm -v \"$PWD\":/repo:ro -w /repo node:22 sh -c 'mkdir -p /workspace/src /workspace/tests/instructor && echo approved > /workspace/intent.md && echo protected > /workspace/tests/instructor/check.mjs && echo old > /workspace/src/app.mjs && ln -s /workspace/intent.md /workspace/src/shortcut && node --test \"tests/student/guard/**/*.test.mjs\"'\n```\n\nOptional: watch Claude get blocked. Add this wrapper as `guard/live-hook.mjs`. It maps your project folder to `/workspace`, so `intent.md` at the repository root counts as protected:\n\n```js\nimport {decide} from './guard.mjs';\nlet raw = '';\nfor await (const chunk of process.stdin) raw += chunk;\nconst event = JSON.parse(raw);\nconst root = process.env.CLAUDE_PROJECT_DIR || event.cwd;\nconst map = p => typeof p === 'string' && (p === root || p.startsWith(root + '/')) ? '/workspace' + p.slice(root.length) : p;\nconst input = {...event.tool_input};\nif ('file_path' in input) input.file_path = map(input.file_path);\nif (typeof input.command === 'string') input.command = input.command.replaceAll(root + '/', '/workspace/');\nconst result = decide({tool_name: event.tool_name, tool_input: input, cwd: map(event.cwd)});\n// Print only denials: allowed calls still get Claude Code's normal permission prompts.\nif (result.hookSpecificOutput.permissionDecision === 'deny') console.log(JSON.stringify(result));\n```\n\nThen create `.claude/settings.local.json` yourself (it is git-ignored; never commit it) and start a new Claude Code session in the repository folder (plain `claude` is fine), because hooks are read at startup:\n\n```json\n{\"hooks\": {\"PreToolUse\": [{\"matcher\": \"Edit|Write|MultiEdit|Bash\", \"hooks\": [{\"type\": \"command\", \"command\": \"node \\\"$CLAUDE_PROJECT_DIR/guard/live-hook.mjs\\\"\"}]}]}}\n```\n\nTell Claude you are testing the hook and ask it to write to `intent.md`, then to run `printf x > intent.md`: each call should be blocked with your reason. Asking it to add a comment to `guard/guard.mjs` should go through as normal. Delete the settings file when you are done, and any stray `intent.md` the demo created: it must not be committed.\n\nThis lab often takes longer than the listed time the first time through.",
+  "done": [
+    "`node --test 'tests/student/guard/**/*.test.mjs'` passes, and fails if you temporarily make `decide` allow everything.",
+    "The sample-events command prints `ok` for every event except `symlink`, which needs `/workspace` (all of them pass under the Docker command).",
+    "`decide(null)` and `decide({})` return a deny with a reason instead of throwing.",
+    "`git status` shows changes only in `guard/` and `tests/student/guard/`."
+  ],
+  "format": "- `decide` is synchronous and returns exactly `{hookSpecificOutput: {hookEventName: 'PreToolUse', permissionDecision: 'allow' | 'deny', permissionDecisionReason}}`: a non-empty reason of at most 2000 characters, and no other keys.\n- Malformed events (`null`, `{}`, an Edit or Write without a string `file_path`, a Bash call without `command`) are denied with a reason, without throwing.\n- Relative paths resolve against the event's `cwd`.\n- Writes to a protected file are denied through Edit, Write and MultiEdit, `>` and `>>` redirects, `cp`, `mv` (into or out of a protected file), `tee` (including `-a`) and `python3 -c`.\n- Ordinary `src/**` edits are allowed, including look-alike names such as `src/intent.md`, and so are read-only commands such as `cat intent.md`.\n- The grader runs `node --test 'tests/student/guard/**/*.test.mjs'` with your guard (it must pass) and with an allow-all guard (it must fail).",
+  "page": {
+    "problem": "A restriction blocks direct edits to an approved intent file, but a shell command still overwrites it. A broad repair then blocks legitimate development as well. You write the PreToolUse guard that Claude Code would run before each tool call, so protected files stay safe on every write path while normal source edits still work.",
+    "practise": "writing a Claude Code PreToolUse hook decision, decide(event), that handles relative paths, symlinks, shell redirects, cp, mv, tee and scripts, plus tests that prove it",
+    "hand_in": "guard/guard.mjs and your tests in tests/student/guard/",
+    "graded": [
+      "Fixed events in eight groups: direct writes, path normalization, the symlink, shell routes, normal source edits, reads, look-alike names and malformed input; every decision must have the PreToolUse shape and change no file.",
+      "Your tests pass with your guard and fail against an allow-all guard.",
+      "Allowing a write to a protected file, or allowing or denying everything, caps the score at 25."
+    ],
+    "slides": "Chapter 1, Lesson 5 (hooks as build-time checks) and Chapter 2, Lessons 1 and 4 (protecting the check; hooks as approval gates). In the slides a gate is a script registered in `settings.json` that can allow, ask or block; here you write the decision as a JavaScript `decide()` function that allows or denies."
+  },
+  "slides": "Chapter 1, Lesson 5 (hooks as build-time checks) and Chapter 2, Lessons 1 and 4 (protecting the check; hooks as approval gates). In the slides a gate is a script registered in `settings.json` that can allow, ask or block; here you write the decision as a JavaScript `decide()` function that allows or denies."
+}

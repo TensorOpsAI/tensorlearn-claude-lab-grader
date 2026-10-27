@@ -1,0 +1,35 @@
+{
+  "intro": "The task itself is deliberately trivial, so that anything that goes wrong is in the setup (your fork, GitHub Actions, the grading App or the TensorLearn connector) and gets fixed before the workshop, not during it. Every later lab uses the same round. Allow 10 to 20 minutes the first time; most of it is setup.\n\n**What you'll practise:** the round you repeat in every lab with Claude Code: ask Claude for a small change, check its diff, commit and push, open a PR in your fork, then `/submit` and `/check`.",
+  "replace": {
+    "README.md": [
+      [
+        "3. Run `preflight.practice` and submit.",
+        "3. Check the file yourself: `answer.json` should hold `{\"answer\": 2}` (spacing and line breaks don't matter). Then submit as described in **How to submit** below."
+      ],
+      [
+        "The authoring profile provides reading, a scoped patch operation and the practice check; it provides no general shell, native mutation tools or agents. No model judge is needed.",
+        "Review Claude's change before you commit it. No model judge is needed."
+      ],
+      [
+        "- The selected PR head has a saved TensorLearn result.",
+        "- The selected PR head (the latest commit you pushed to your PR) has a saved TensorLearn result."
+      ]
+    ]
+  },
+  "after_task": "### If something fails\n\n- **No \"Check preflight submission\" check on your PR:** Actions are not enabled in your fork (open your fork's **Actions** tab and enable them), or the PR targets the upstream repository instead of your fork's `main`. Push a new commit after fixing either.\n- **The lab page says your fork is not connected:** use **Connect GitHub for scoring** to install the grading App on your fork, then **Recheck connection**.\n- **`/submit` is refused:** the round may not be launched yet. Run `/load` again after your instructor launches it, check that your branch is pushed and the PR is open, then run `/submit` again.",
+  "done": [
+    "`answer.json` is exactly `{\"answer\": 2}`, and `git status` shows no other changed file.",
+    "Your PR inside your fork shows the **Check preflight submission** check.",
+    "`/check` (or the lab page) shows a saved score of 10/10."
+  ],
+  "format": "- `answer.json` must contain exactly one key, `answer`, whose value is a JSON number: `{\"answer\": 2}`. The text `\"2\"`, an extra key or invalid JSON is graded invalid and scores 0/10.",
+  "page": {
+    "problem": "Before the workshop, confirm that your local workspace, GitHub PR and TensorLearn result can complete one round. The task is deliberately trivial (1 + 1), so any problem you hit is in the setup (fork, Actions, grading App or connector) and gets fixed before the workshop. Allow 10 to 20 minutes the first time; README.md has a short list of fixes if something fails.",
+    "practise": "the round you repeat in every lab: ask Claude for a small change, check its diff, commit, push, open a PR in your fork, /submit and /check",
+    "hand_in": "answer.json containing {\"answer\": 2}",
+    "graded": [
+      "answer.json must be exactly {\"answer\": 2}: one key with a number. Any other shape (the text \"2\", extra keys, invalid JSON) is invalid and scores 0.",
+      "Only answer.json may change; a change to any other file makes the submission invalid."
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "intro": "Here, an **intent** is a short document written before any spec or code: the problem, the outcome you want, who and what it affects, what is out of scope, the constraints, and the questions still open and who owns them. A **superseded** request has been replaced by a later approved decision: it is history, not current approval. The three sources are in `inputs/`: the approved PRD, the latest discovery notes and the superseded early request.\n\n**What you'll practise:** capturing a request as `intent.md` with Claude Code. Let Claude interview you, have it write the draft, then check every line against the sources and correct what it got wrong. The traps are in what Claude may take from the superseded request.",
+  "replace": {
+    "README.md": [
+      [
+        "2. Ask the read-only coach clarification questions.",
+        "2. Ask Claude to interview you about the request before it writes anything: scope, users, constraints and success. Answer from the approved sources."
+      ],
+      [
+        "3. Personally write `intent.md` in your editor. Include purpose, scope, exclusions, success conditions and unresolved decisions.",
+        "3. Ask Claude to write `intent.md` with these sections: Problem, Proposed outcome (including how success will be observed), Affected users and systems, Out of scope, Constraints, and Open questions with their owners."
+      ],
+      [
+        "4. Request a read-only review, revise your own draft, then submit.",
+        "4. Read the draft against `inputs/`, correct what Claude got wrong or took from the superseded request, then submit."
+      ],
+      [
+        "Claude can read and ask questions but has no write, shell, agent or mutation-MCP tools. Write the draft yourself. Coaching prompts prohibit replacement prose; the final file alone cannot prove human authorship.",
+        "Claude may write the draft; you are responsible for every line in it."
+      ],
+      [
+        "is a critical error: the announced rubric caps the result at 25/100.",
+        "is a critical error that caps the result at 25/100."
+      ]
+    ]
+  },
+  "after_task": "A good way to work, as in the course: start with *\"Before writing anything, ask me questions about this request until you understand it. Then write intent.md.\"* Answer from `inputs/` only, and ask Claude to quote the file behind each decision. When you check the draft, look for the usual mistakes: describing the solution instead of the problem, empty constraints, and open questions that were quietly decided. Numbering your items (for example I-1 and OPEN-1) makes them easy to trace in the next lab, *Make the spec and plan traceable*.",
+  "done": [
+    "The `<!-- Write your intent here. -->` placeholder is gone, and `intent.md` contains no HTML comment and no TODO.",
+    "`intent.md` has the six sections, states how success will be observed, and keeps the open questions with their owners.",
+    "`intent.md` ends with exactly one ```json decision record that uses only the listed values.",
+    "Nothing in it is approved only by the superseded request, and no numeric target is invented."
+  ],
+  "format": "- The prose (everything outside the JSON block) must be at least 400 characters and must state the scope, what is out of scope (or excluded), the success conditions and the owners.\n- The referring doctor is decided separately, as an open question with its own owners. It is not part of `third-party-notifications`.",
+  "page": {
+    "problem": "A fictional clinic wants fewer calls asking whether results are ready. The approved PRD, recent discovery notes and an older, superseded request disagree on when to notify patients, what the message may say and who receives it. Before anyone specifies or builds the feature, you capture its intent: problem, outcome, affected users, out of scope, constraints and open questions with owners.",
+    "practise": "capturing a request as intent.md with Claude Code: let Claude interview you, have it write the draft, then check it against the sources and correct it",
+    "hand_in": "intent.md, ending with a short JSON decision record",
+    "graded": [
+      "The prose covers scope, exclusions, success and owners, with the starter placeholder removed; the JSON decision record is checked against the sources.",
+      "A missing or invalid JSON record, notifying before doctor review and release, or allowing anything but \"update available\" in the message caps the score at 25."
+    ],
+    "slides": "Chapter 1, Lesson 1 (Capture as intent.md): the same results-ready scenario, the same six sections, and the same flow of questions first, then the draft, then your corrections."
+  },
+  "slides": "Chapter 1, Lesson 1 (Capture as intent.md): the same results-ready scenario, the same six sections, and the same flow of questions first, then the draft, then your corrections."
+}

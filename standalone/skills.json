@@ -1,0 +1,44 @@
+{
+  "intro": "The policy is `policy.md`. A Claude Code skill is a folder with a `SKILL.md` file: its `description` tells Claude when the skill applies, and Claude loads the skill by itself when a request matches. This lab's skill is `.claude/skills/notification-policy/SKILL.md`, and it should tell Claude to run the backing checker, `checker/check-message.mjs`, on any message it drafts.\n\nThe sensitive terms in `policy.md` are matched as listed (ignoring letter case), so “positive result” is one phrase. The fixture message “The result is positive. Your doctor recommends metformin.” is blocked because it names `metformin`.\n\n**What you'll practise:** writing a Claude Code skill whose description makes it activate for direct and indirect requests, backed by an executable check, and confirming in fresh sessions that it fires.",
+  "replace": {
+    "README.md": [
+      [
+        "2. Write the skill’s activation description, policy lookup, steps and output contract.",
+        "2. Write the skill’s activation description, policy lookup, steps and output contract in `.claude/skills/notification-policy/SKILL.md`, replacing both `TODO`s."
+      ],
+      [
+        "3. Implement the backing message check.",
+        "3. Implement the backing message check in `checker/check-message.mjs`, following the checker contract at the end of `policy.md`."
+      ],
+      [
+        "4. Test direct, paraphrased and misleading requests in fresh sessions.",
+        "4. Test direct, paraphrased and misleading requests in fresh sessions. The prompts in `fixtures/prompts.json` are a starting set."
+      ],
+      [
+        "Edit only the designated skill assets and checker. The replay runtime stages a sanitized skill-only plugin; candidate hooks, extra agents and arbitrary plugins are rejected. Checker code executes outside the credential-bearing model client. Prompts cannot grant new tools.",
+        "Edit only the skill folder (`.claude/skills/notification-policy/**`) and `checker/check-message.mjs`. Hooks, extra agents, plugins and settings changes are not part of the answer; adding them makes the submission invalid. The grader runs `checkMessage` in a sandbox without Node APIs (no imports, no `console`, no file access), so embed the policy rules in the checker instead of reading `policy.md` at runtime. Use Node 22; there is no `package.json`."
+      ]
+    ]
+  },
+  "after_task": "**Checking activation.** After editing `SKILL.md`, start a fresh conversation (a new `claude` session in the repository folder, or `/clear`) and send one prompt from `fixtures/prompts.json` at a time, without naming the skill. When the skill activates, Claude Code shows it loading `notification-policy` before answering. You can also run it directly with `/notification-policy`, but the point is that it fires on its own.\n\nRun the checker on the fixture messages, or on one draft (the skill can tell Claude to use the second command):\n\n```sh\nnode -e \"import('./checker/check-message.mjs').then(({checkMessage})=>{for(const {body,allowed} of require('./fixtures/messages.json')){const r=checkMessage({body});console.log(r.allowed===allowed?'ok  ':'FAIL',JSON.stringify(body),r.violations)}})\"\nnode -e \"import('./checker/check-message.mjs').then(m=>console.log(JSON.stringify(m.checkMessage({body:process.argv[1]}))))\" \"An update is available in your secure portal.\"\n```",
+  "done": [
+    "The fixture command prints `ok` for all five messages in `fixtures/messages.json`.",
+    "A message with support hours, a support telephone number or a version label is allowed; any clinical term listed in `policy.md` (in any letter case) or a measurement such as `130 mg/dL` is blocked.",
+    "In a fresh session, each prompt in `fixtures/prompts.json` loads the `notification-policy` skill, and the request for the glucose result gets a useful neutral message instead.",
+    "`SKILL.md` has no `TODO` left.",
+    "`git status` shows changes only in `.claude/skills/notification-policy/` and `checker/check-message.mjs`."
+  ],
+  "format": "- `checkMessage({body})` returns exactly `{allowed, violations}`. `allowed` is a boolean; `violations` is an array of non-empty strings (rule IDs or short reasons, not the clinical text), empty when allowed and non-empty when blocked.\n- It never throws. A missing, non-string or blank `body` is not allowed.\n- It inspects only `body` (other fields of the input are ignored) and does not change the input.\n- `SKILL.md` is reviewed by your facilitator; it is not scored automatically.",
+  "page": {
+    "problem": "Developers apply the notification privacy rules when explicitly asked, but omit them when asked to make a notification more useful. The policy exists in policy.md; Claude does not reliably apply it. You write a skill that activates for direct and indirect requests, backed by a checker that blocks clinical details.",
+    "practise": "writing a Claude Code skill (SKILL.md) whose description makes it fire on its own, backed by an executable message checker, and testing activation in fresh sessions",
+    "hand_in": ".claude/skills/notification-policy/SKILL.md and checker/check-message.mjs",
+    "graded": [
+      "19 fixed messages run through your checker: neutral messages (support hours, phone number, version label) allowed; clinical terms, measurements and blank or invalid bodies blocked.",
+      "Your SKILL.md is reviewed by your facilitator, not scored automatically.",
+      "Failing a core privacy case caps the score at 25."
+    ],
+    "slides": "Chapter 1, Lesson 5 (Skills): the same patient-data policy as a skill, tested by asking in different words. The slides back the skill with a hook; here the deterministic check is your `checkMessage` function."
+  },
+  "slides": "Chapter 1, Lesson 5 (Skills): the same patient-data policy as a skill, tested by asking in different words. The slides back the skill with a hook; here the deterministic check is your `checkMessage` function."
+}
