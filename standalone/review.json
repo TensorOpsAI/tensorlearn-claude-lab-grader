@@ -1,50 +1,67 @@
 {
-  "intro": "The PR under review is `fixtures/defective.patch`; its description is `fixtures/author-narrative.txt`. `fixtures/clean.patch` is a second, small change to check that your review does not invent problems. The approved requirements, with their IDs, are in `fixtures/approved.md`; there is no separate spec or plan file. The evals and incident labs tell the same incident from other angles.\n\nTerms used below:\n\n- **Blind review:** a review that sees only the approved requirements and the patch, not the author's description.\n- **Supported finding:** one that points to a changed line and ties it to a requirement in `fixtures/approved.md`.\n- **Reviewer instructions:** the `instructions` in `agents/reviewer.json`: how a read-only reviewer reads the requirements and the patch and reports findings in the `findings.schema.json` shape.\n\n**What you'll practise:** reviewing a change with Claude Code without being steered by the author. Write a review policy, run it in a fresh context that sees only the requirements and the diff, then compare that with a run that also reads the author's claims.",
-  "replace": {
-    "README.md": [
-      [
-        "1. Read the approved intent, spec and plan.",
-        "1. Read the approved intent, spec and plan in `fixtures/approved.md`."
-      ],
-      [
-        "2. Write `REVIEW.md` and the reviewer’s instructions.",
-        "2. Write `REVIEW.md` and the reviewer’s instructions. In `REVIEW.md`, replace the TODO line with your policy: what counts as evidence, how you choose a severity, how a finding maps to a requirement, how you handle uncertainty, and a cap on minor comments. In `agents/reviewer.json`, fill in `instructions` and keep the other two fields."
-      ],
-      [
-        "3. Run a blind review using only requirements and the patch.",
-        "3. Run a blind review using only requirements and the patch: in a fresh Claude Code session, or a subagent, give the reviewer your instructions and let it read only `fixtures/approved.md`, `fixtures/defective.patch` and `REVIEW.md`. Ask for findings in the `findings.schema.json` shape."
-      ],
-      [
-        "4. Repeat with the author narrative and compare supported findings.",
-        "4. Repeat with the author narrative (`fixtures/author-narrative.txt`) added and compare supported findings. In `REVIEW.md`, note what changed between the two runs and how your policy keeps the narrative from replacing evidence."
-      ],
-      [
-        "5. Test the clean patch; reduce unsupported findings and minor comments.",
-        "5. Test the clean patch (`fixtures/clean.patch`) the same way; tighten the policy until it reduces unsupported findings and minor comments. Record the final findings for both patches in `REVIEW.md`, in the graded block below."
-      ],
-      [
-        " Assessed reviewer processes have no shell or write tools. The instructor MCP exposes only immutable requirements, diff and file reads. Candidate reports are not accepted as evidence that a review actually ran.",
-        "\n\nThe reviewer only reads: it does not edit files, run commands, approve or merge. The grader does not run your reviewer. It reads `REVIEW.md` and `agents/reviewer.json` and checks the findings you record with fixed rules."
-      ]
-    ]
-  },
-  "after_task": "A good way to work: draft the policy with Claude, then run each review in a context that has not seen this conversation, so neither the author's claims nor your own discussion steer it. Compare the two runs before you change the policy. Keep the reviewer's output in the chat (do not save it to new files); you copy the final findings into `REVIEW.md` yourself.",
-  "done": [
-    "`REVIEW.md` has your policy in prose (no TODO), a note on how the author narrative changed the review, and one fenced `json` block with findings for both patches.",
-    "Each finding for `fixtures/defective.patch` names a changed path and line, a requirement ID from `fixtures/approved.md`, the evidence and a recommendation; `fixtures/clean.patch` has no findings.",
-    "`agents/reviewer.json` describes a read-only, requirements-first review.",
-    "Only `REVIEW.md` and `agents/reviewer.json` changed."
+  "readme": [
+    "# Review without the author’s bias",
+    "",
+    "A PR (`fixtures/defective.patch`) says all requirements were verified (`fixtures/author-narrative.txt`).",
+    "In fact it removes caching, logs whole patient results and weakens the release rule, alongside a harmless",
+    "style change. `fixtures/clean.patch` is a small correct change. The requirements are in `fixtures/approved.md`.",
+    "",
+    "**What you'll practise:** turning Claude into a reviewer you can rely on: a written policy decides what counts",
+    "as a finding, and the review runs in a clean context.",
+    "",
+    "**In the course slides:** Chapter 2, Lesson 3 (AI in the PR review loop): REVIEW.md, findings that cite the",
+    "requirements, and a cap on nits. The slides' *Important* is `critical` or `major` here; a *nit* is `minor`.",
+    "",
+    "## Task",
+    "",
+    "1. Read the requirements in `fixtures/approved.md`.",
+    "2. Before writing a policy, ask Claude to review `fixtures/defective.patch` against them. Check each finding: is it",
+    "   the right changed line, one requirement and a sensible severity? Note what a policy should settle.",
+    "3. Write your policy in `REVIEW.md` (evidence, severity, one requirement per finding, uncertainty, a cap on",
+    "   minor comments) and the `instructions` in `agents/reviewer.json` (keep its other two fields).",
+    "4. Run the review in a subagent or fresh session that sees only `fixtures/approved.md`,",
+    "   `fixtures/defective.patch` and `REVIEW.md`, and returns findings in the `findings.schema.json` shape.",
+    "5. Repeat with `fixtures/author-narrative.txt` added. In `REVIEW.md`, note what changed; if nothing did, say",
+    "   your policy held.",
+    "6. Review `fixtures/clean.patch` the same way, compare with step 2, and record the final findings for both",
+    "   patches in the graded block below.",
+    "",
+    "Give Claude one step at a time and read what it reports. Keep review output in the chat, not in new files.",
+    "",
+    "## Rules",
+    "",
+    "- Change only `REVIEW.md` and `agents/reviewer.json`. The reviewer only reads: it does not edit files, run",
+    "  commands, approve or merge.",
+    "",
+    "## Acceptance targets",
+    "",
+    "- Findings cite changed paths/lines, evidence and violated requirements.",
+    "- Material privacy, release-gate and caching defects are found.",
+    "- The clean patch does not receive invented defects.",
+    "- The reviewer remains read-only and does not approve or merge.",
+    "",
+    "## Done when",
+    "",
+    "- `REVIEW.md` has your policy (no TODO), the narrative note and one `json` block with findings for both patches.",
+    "- `fixtures/clean.patch` has no findings; `agents/reviewer.json` describes a read-only, requirements-first review.",
+    "",
+    "## Graded format",
+    "",
+    "The grader checks these rules; a correct answer must follow them:",
+    "",
+    "- `REVIEW.md` has at least 300 characters of policy prose outside code blocks that covers evidence, severity and requirement mapping, with no `TODO` and no HTML comments.",
+    "- `agents/reviewer.json` keeps exactly `purpose`, `instructions` (at least 80 characters, no `TODO`) and `\"output\": \"findings.schema.json\"`. Do not add tool, model or permission fields.",
+    "- Report only supported findings: each must point to a changed line and a requirement it breaks. Unsupported findings lose points.",
+    "- The whitespace change in `generated/styles.css` breaks no requirement. Either leave it out or report it as one `minor` finding."
   ],
-  "format": "The grader checks these rules; a correct answer must follow them:\n\n- `REVIEW.md` has at least 300 characters of policy prose outside code blocks that covers evidence, severity and requirement mapping, with no `TODO` and no HTML comments.\n- `agents/reviewer.json` keeps exactly `purpose`, `instructions` (at least 80 characters, no `TODO`) and `\"output\": \"findings.schema.json\"`. Do not add tool, model or permission fields.\n- Report only supported findings: each must point to a changed line and a requirement it breaks. Unsupported findings lose points.\n- The whitespace change in `generated/styles.css` breaks no requirement. Either leave it out or report it as one `minor` finding.",
   "page": {
-    "problem": "A PR description says all requirements and performance were verified. The patch removes caching, logs whole responses and changes approved behavior. Generated-file style changes distract from the defects.",
-    "practise": "reviewing a change with Claude Code without the author's bias: write a review policy and read-only reviewer instructions, run a blind review in a fresh context, then compare it with a run that also reads the author's narrative",
-    "hand_in": "REVIEW.md (your policy and the findings for both patches) and agents/reviewer.json",
+    "problem": "A pull request claims everything was verified, but it quietly breaks three approved requirements.",
+    "practise": "turning Claude into a reviewer you can rely on, with a written review policy and a review run in a clean context",
+    "hand_in": "REVIEW.md (your policy and findings) and agents/reviewer.json",
     "graded": [
       "REVIEW.md policy prose and the three fields of agents/reviewer.json are checked.",
       "Your recorded findings must find the real defects with the right requirement and severity, report nothing unsupported, keep the style change minor and leave the clean patch without findings."
     ],
-    "slides": "Chapter 2, Lesson 3 (AI in the PR review loop): REVIEW.md, findings that cite the requirements, and a cap on nits. The slides rank findings as Important or nit; here `critical` and `major` are the slides' Important, and `minor` is a nit."
-  },
-  "slides": "Chapter 2, Lesson 3 (AI in the PR review loop): REVIEW.md, findings that cite the requirements, and a cap on nits. The slides rank findings as Important or nit; here `critical` and `major` are the slides' Important, and `minor` is a nit."
+    "slides": "Chapter 2, Lesson 3 (AI in the PR review loop)."
+  }
 }

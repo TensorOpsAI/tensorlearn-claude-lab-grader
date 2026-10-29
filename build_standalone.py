@@ -111,15 +111,19 @@ def starter_files(starter,key):
         files[relative]=data
     unknown=set(edits)-set(files)-{'README.md'}
     if unknown: raise ValueError(f'{key}: replacements for missing files {sorted(unknown)}')
-    readme=(source/'README.md').read_text()
-    cuts=[readme.index(h) for h in LOCAL_SECTIONS if h in readme]
-    if not cuts: raise ValueError(f'{key}: README has no submission section to replace')
-    body=replace(readme[:min(cuts)].rstrip()+'\n',edits.get('README.md',[]),f'{key}/README.md')
-    intro='\n\n'.join(t for t in (extra.get('intro'),extra.get('slides') and f"**In the course slides:** {extra['slides']}") if t)
-    body=insert_before(body,'## Task',intro,f'{key}/README.md')
-    body=insert_before(body,'## Working rules',extra.get('after_task'),f'{key}/README.md')
-    if extra.get('done'): body=body.rstrip()+'\n\n## Done when\n\n'+''.join(f'- {d}\n' for d in extra['done'])
-    if extra.get('format'): body=body.rstrip()+'\n\n## Graded format\n\n'+extra['format'].strip()+'\n'
+    if extra.get('readme'):
+        # A rewritten README replaces the adapted original up to the submission guide.
+        body='\n'.join(extra['readme'])+'\n'
+    else:
+        readme=(source/'README.md').read_text()
+        cuts=[readme.index(h) for h in LOCAL_SECTIONS if h in readme]
+        if not cuts: raise ValueError(f'{key}: README has no submission section to replace')
+        body=replace(readme[:min(cuts)].rstrip()+'\n',edits.get('README.md',[]),f'{key}/README.md')
+        intro='\n\n'.join(t for t in (extra.get('intro'),extra.get('slides') and f"**In the course slides:** {extra['slides']}") if t)
+        body=insert_before(body,'## Task',intro,f'{key}/README.md')
+        body=insert_before(body,'## Working rules',extra.get('after_task'),f'{key}/README.md')
+        if extra.get('done'): body=body.rstrip()+'\n\n## Done when\n\n'+''.join(f'- {d}\n' for d in extra['done'])
+        if extra.get('format'): body=body.rstrip()+'\n\n## Graded format\n\n'+extra['format'].strip()+'\n'
     addition=fixed_rules.TASK_ADDITIONS.get(key,'')
     item=json.loads((source/'exercise.json').read_text())
     editable='CLAUDE.md' in item['writeAllow'] or '**' in item['writeAllow']

@@ -471,7 +471,7 @@
       "src/claims.mjs": "641c52753b57e60249cb73e41c4544f41390df9d",
       "tests/baseline.test.mjs": "a5fd3026cb5b242a800d6e5a125667b4b65bb36d",
       "tests/student/regression.test.mjs": "b07f129b0c3cf535ac4a4cc9ca31fb03f36caa5b",
-      "README.md": "2910cbf51660fad67d6322293f163fe6c553acbd",
+      "README.md": "efeb1ca1cacb22eeb52996b741fbfff74cea5105",
       "exercise.json": "b0e268c738c73036271c71999be301671385410f",
       "CLAUDE.md": "c9ff5e033cf6bf080cb2c6f3cb469452fe0cf836",
       ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
@@ -577,7 +577,7 @@
       "fixtures/author-narrative.txt": "203bab568161827ff817a92833d63ec0b17b51da",
       "fixtures/clean.patch": "e827c03d1453754cd5057731aeccb9d1f22fda68",
       "fixtures/defective.patch": "a061c215f7c7827ea97449c47fc3bca67c1218b3",
-      "README.md": "cd5aaa7004da7aac0e1e15461bad04b58659d50a",
+      "README.md": "94f14fb91e3690e18f7ca35b310abd41141c926f",
       "exercise.json": "3679cba09a8d2c002ff876baba522deedc342127",
       "CLAUDE.md": "c9ff5e033cf6bf080cb2c6f3cb469452fe0cf836",
       ".gitignore": "e3daded734e66b232864648c6c09a5f6ef6155e5"
